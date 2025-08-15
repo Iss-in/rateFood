@@ -1,0 +1,341 @@
+'use client'
+import {useState, useMemo, useEffect} from "react";
+import { Navbar } from "./components/Navbar";
+import { FilterPanel } from "./components/FilterPanel";
+import { DishCard, Dish } from "./components/DishCard";
+import { RestaurantCard, Restaurant } from "./components/RestaurantCard";
+import { AddDishDialog } from "./components/AddDishDialog";
+import { AddRestaurantDialog } from "./components/AddRestaurantDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+
+// Mock data
+const initialDishes: Dish[] = [
+  {
+    id: "1",
+    name: "Truffle Pasta",
+    restaurant: "Luigi's Italian",
+    description: "Fresh handmade pasta with black truffle and parmesan cheese",
+    // price: 28.99,
+    // rating: 4,
+    tags: ["Italian", "Pasta", "Luxury", "Vegetarian"],
+    image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&h=300&fit=crop",
+    // location: "Downtown",
+    // distance: 2.3
+  },
+  {
+    id: "2", 
+    name: "Korean BBQ Bowl",
+    restaurant: "Seoul Kitchen",
+    description: "Marinated bulgogi beef with steamed rice and vegetables",
+    // price: 16.50,
+    // rating: 5,
+    tags: ["Korean", "BBQ", "Rice Bowl", "Meat"],
+    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
+    // location: "Koreatown",
+    // distance: 1.8
+  },
+  {
+    id: "3",
+    name: "Fish Tacos",
+    restaurant: "Coastal Cantina",
+    description: "Grilled mahi-mahi with cabbage slaw and chipotle mayo",
+    // price: 14.75,
+    // rating: 3,
+    tags: ["Mexican", "Fish", "Tacos", "Healthy"],
+    image: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400&h=300&fit=crop",
+    // location: "Beach Area",
+    // distance: 5.2
+  }
+];
+
+
+
+
+const initialRestaurants: Restaurant[] = [
+  {
+    id: "1",
+    name: "Luigi's Italian",
+    cuisine: "Italian",
+    description: "Authentic Italian cuisine with fresh ingredients and traditional recipes",
+    rating: 4,
+    tags: ["Italian", "Fine Dining", "Romantic", "Wine Bar"],
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop",
+    // location: "Downtown",
+    // distance: 2.3,
+    // hours: "5 PM - 11 PM",
+    // phone: "(555) 123-4567",
+    // priceRange: "$$$"
+  },
+  {
+    id: "2",
+    name: "Seoul Kitchen",
+    cuisine: "Korean",
+    description: "Modern Korean restaurant serving traditional and fusion dishes",
+    rating: 5,
+    tags: ["Korean", "BBQ", "Family Friendly", "Spicy"],
+    image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=300&fit=crop",
+    // location: "Koreatown",
+    // distance: 1.8,
+    // hours: "11 AM - 10 PM",
+    // phone: "(555) 987-6543",
+    // priceRange: "$$"
+  },
+  {
+    id: "3",
+    name: "Coastal Cantina",
+    cuisine: "Mexican",
+    description: "Fresh coastal Mexican cuisine with an ocean view",
+    rating: 3,
+    tags: ["Mexican", "Seafood", "Ocean View", "Casual"],
+    image: "https://images.unsplash.com/photo-1592861956120-e524fc739696?w=400&h=300&fit=crop",
+    // location: "Beach Area",
+    // distance: 5.2,
+    // hours: "12 PM - 9 PM",
+    // phone: "(555) 246-8135",
+    // priceRange: "$$"
+  }
+];
+
+export default function App() {
+  // const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('selectedCity') || null;
+    }
+    return null;
+  });
+
+
+  const [dishes, setDishes] = useState(initialDishes);
+
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1); // or totalCount if you prefer
+
+  // Filter states
+  const [dishSearch, setDishSearch] = useState("");
+  const [dishTags, setDishTags] = useState<string[]>([]);
+  const [dishRange, setDishRange] = useState(10);
+  
+  const [restaurantSearch, setRestaurantSearch] = useState("");
+  const [restaurantTags, setRestaurantTags] = useState<string[]>([]);
+  const [restaurantRange, setRestaurantRange] = useState(10);
+
+
+  useEffect(() => {
+    if (!selectedCity) return; // Exit early if city is not selected yet
+
+    localStorage.setItem('selectedCity', selectedCity);
+
+    fetch(`http://localhost:9000/api/restaurant/${selectedCity}`) // your backend endpoint URL here
+        .then((res) => {
+          if (!res.ok) throw new Error(`Failed to fetch restaurants for ${selectedCity}?page=${currentPage}`);
+          // console.log(res);
+          return res.json();
+        })
+        .then((data) => {
+          console.log(data);
+          setRestaurants(data.data);
+          setCurrentPage(data.currentPage);
+          setTotalPages(data.totalPages);
+          // onCityChange(data[0]);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+  }, [selectedCity, currentPage]);
+
+  // Get available tags
+  const dishTagOptions = useMemo(() => {
+    const allTags = dishes.flatMap(dish => dish.tags);
+    return [...new Set(allTags)];
+  }, [dishes]);
+
+  const restaurantTagOptions = useMemo(() => {
+    const allTags = restaurants.flatMap(restaurant => restaurant.tags);
+    return [...new Set(allTags)];
+  }, [restaurants]);
+
+  // Filter functions
+  const filteredDishes = useMemo(() => {
+    return dishes.filter(dish => {
+      const matchesSearch = dish.name.toLowerCase().includes(dishSearch.toLowerCase()) ||
+                           dish.restaurant.toLowerCase().includes(dishSearch.toLowerCase());
+      const matchesTags = dishTags.length === 0 || dishTags.some(tag => dish.tags.includes(tag));
+      // const withinRange = dish.distance <= dishRange;
+      // return matchesSearch && matchesTags && withinRange;
+      //
+      return matchesSearch && matchesTags ;
+    });
+  }, [dishes, dishSearch, dishTags, dishRange]);
+
+  const filteredRestaurants = useMemo(() => {
+    return restaurants.filter(restaurant => {
+      const matchesSearch = restaurant.name.toLowerCase().includes(restaurantSearch.toLowerCase()) ||
+                           restaurant.cuisine.toLowerCase().includes(restaurantSearch.toLowerCase());
+      const matchesTags = restaurantTags.length === 0 || restaurantTags.some(tag => restaurant.tags.includes(tag));
+      // const withinRange = restaurant.distance <= restaurantRange;
+      
+      // return matchesSearch && matchesTags && withinRange;
+      return matchesSearch && matchesTags ;
+
+    });
+  }, [restaurants, restaurantSearch, restaurantTags, restaurantRange]);
+
+  // Handler functions
+  const handleDishRating = (dishId: string, rating: number) => {
+    setDishes(prev => prev.map(dish => 
+      dish.id === dishId ? { ...dish, rating } : dish
+    ));
+  };
+
+  const handleRestaurantRating = (restaurantId: string, rating: number) => {
+    setRestaurants(prev => prev.map(restaurant =>
+      restaurant.id === restaurantId ? { ...restaurant, rating } : restaurant
+    ));
+  };
+
+  const handleAddDish = async (newDish: Omit<Dish, "id" | "rating">) => {
+    const dish: Dish = {
+      ...newDish,
+      id: Date.now().toString(),
+      // rating: 0
+    };
+    try {
+      // Replace 'http://your-backend-api/dishes' with your actual backend URL
+      const response = await fetch('http://localhost:9000/api/dish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body : JSON.stringify({
+          ...newDish,
+          restaurant: {"id": 1}
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      // Assuming backend returns the created dish with id and rating assigned
+      const createdDish: Dish = await response.json();
+
+      // Add the returned dish (with id and rating) to state
+      setDishes(prev => [createdDish, ...prev]);
+    } catch (error) {
+      console.error('Failed to add dish:', error);
+      // Optionally, show user-friendly error message or fallback action
+    }
+
+    setDishes(prev => [dish, ...prev]);
+  };
+
+  const handleAddRestaurant = async (newRestaurant: Omit<Restaurant, "id" | "rating">) => {
+    const restaurant: Restaurant = {
+      ...newRestaurant,
+      id: Date.now().toString(),
+      rating: 0
+    };
+
+    const response = await fetch('http://localhost:9000/api/restaurant', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ...newRestaurant, city: selectedCity })
+    });
+
+    setRestaurants(prev => [restaurant, ...prev]);
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar selectedCity={selectedCity} onCityChange={setSelectedCity} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Food Reviews in {selectedCity}</h1>
+          <p className="text-muted-foreground">Discover and review the best dishes and restaurants in your city</p>
+        </div>
+
+        <Tabs defaultValue="dishes" className="w-full">
+          <div className="flex justify-between items-center mb-6">
+            <TabsList>
+              <TabsTrigger value="dishes">Dishes</TabsTrigger>
+              <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
+            </TabsList>
+            {selectedCity && <div className="flex space-x-2">
+              <AddDishDialog onAddDish={handleAddDish} />
+              <AddRestaurantDialog onAddRestaurant={handleAddRestaurant} />
+            </div>
+            }
+          </div>
+
+          <TabsContent value="dishes" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-1">
+                <FilterPanel
+                  onSearchChange={setDishSearch}
+                  onTagsChange={setDishTags}
+                  onRangeChange={setDishRange}
+                  selectedTags={dishTags}
+                  availableTags={dishTagOptions}
+                  searchValue={dishSearch}
+                  locationRange={dishRange}
+                />
+              </div>
+              <div className="lg:col-span-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredDishes.map(dish => (
+                    <DishCard
+                      key={dish.id}
+                      dish={dish}
+                      onRatingChange={handleDishRating}
+                    />
+                  ))}
+                </div>
+                {filteredDishes.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">No dishes found matching your criteria.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="restaurants" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-1">
+                <FilterPanel
+                  onSearchChange={setRestaurantSearch}
+                  onTagsChange={setRestaurantTags}
+                  onRangeChange={setRestaurantRange}
+                  selectedTags={restaurantTags}
+                  availableTags={restaurantTagOptions}
+                  searchValue={restaurantSearch}
+                  locationRange={restaurantRange}
+                />
+              </div>
+              <div className="lg:col-span-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredRestaurants.map(restaurant => (
+                    <RestaurantCard
+                      key={restaurant.id}
+                      restaurant={restaurant}
+                      onRatingChange={handleRestaurantRating}
+                    />
+                  ))}
+                </div>
+                {filteredRestaurants.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">No restaurants found matching your criteria.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
