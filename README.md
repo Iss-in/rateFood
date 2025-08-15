@@ -12,4 +12,3 @@
 
 #TODO:
 - add docker file
-- add intial db for cities
