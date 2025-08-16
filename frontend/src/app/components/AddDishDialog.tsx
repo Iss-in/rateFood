@@ -14,6 +14,8 @@ import toast from 'react-hot-toast';
 interface AddDishDialogProps {
   onAddDish: (dish: Omit<Dish, "id" | "rating">) => void;
   selectedCity: string;
+  open?: boolean; // add this
+  onOpenChange?: (open: boolean) => void; // add
 }
 
 interface RestaurantNameDropdownProps {
@@ -202,9 +204,13 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
 });
 
 
-export function AddDishDialog({ onAddDish, selectedCity }: AddDishDialogProps) {
+export function AddDishDialog({ onAddDish, open, onOpenChange , selectedCity }: AddDishDialogProps) {
+
+  const isOpen = open ?? false;
+  const setIsOpen = onOpenChange ?? (() => {});
+
   const [isRestaurantValid, setIsRestaurantValid] = useState(false);  // <-- ADD THIS
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     restaurant: "",
@@ -237,7 +243,7 @@ export function AddDishDialog({ onAddDish, selectedCity }: AddDishDialogProps) {
         tags: [],
         image: ""
       });
-      setOpen(false);
+      setIsOpen(false);
     }
   };
 
@@ -253,7 +259,7 @@ export function AddDishDialog({ onAddDish, selectedCity }: AddDishDialogProps) {
   };
 
   return (
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <button
               data-slot="button"
@@ -334,7 +340,7 @@ export function AddDishDialog({ onAddDish, selectedCity }: AddDishDialogProps) {
             </div>
 
             <div className="flex justify-end space-x-2">
-              <Button type="button" onClick={() => setOpen(false)}>
+              <Button type="button" onClick={() => setIsOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit">Add Dish</Button>

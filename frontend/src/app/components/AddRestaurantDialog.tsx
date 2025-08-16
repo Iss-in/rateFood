@@ -10,10 +10,15 @@ import { Restaurant } from "./RestaurantCard";
 
 interface AddRestaurantDialogProps {
   onAddRestaurant: (restaurant: Omit<Restaurant, "id" | "rating">) => void;
+  open: boolean; // add this
+  onOpenChange: (open: boolean) => void; // add
 }
 
-export function AddRestaurantDialog({ onAddRestaurant }: AddRestaurantDialogProps) {
-  const [open, setOpen] = useState(false);
+export function AddRestaurantDialog({ onAddRestaurant , open, onOpenChange  }: AddRestaurantDialogProps) {
+
+  const isOpen = open ?? false;
+  const setIsOpen = onOpenChange ?? (() => {});
+
   const [formData, setFormData] = useState({
     name: "",
     cuisine: "",
@@ -55,7 +60,7 @@ export function AddRestaurantDialog({ onAddRestaurant }: AddRestaurantDialogProp
         // phone: "",
         // priceRange: ""
       });
-      setOpen(false);
+      setIsOpen(false);
     }
   };
 
@@ -71,7 +76,7 @@ export function AddRestaurantDialog({ onAddRestaurant }: AddRestaurantDialogProp
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <button data-slot="button"
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 has-[&gt;svg]:px-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg">
@@ -109,6 +114,11 @@ export function AddRestaurantDialog({ onAddRestaurant }: AddRestaurantDialogProp
                 id="cuisine"
                 value={formData.cuisine}
                 onChange={(e) => setFormData(prev => ({...prev, cuisine: e.target.value}))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault(); // disables Enter key submission or form fill on this input
+                  }
+                }}
                 required
             />
           </div>
@@ -206,7 +216,7 @@ export function AddRestaurantDialog({ onAddRestaurant }: AddRestaurantDialogProp
           </div>
           
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
               Cancel
             </Button>
             <Button type="submit">Add Restaurant</Button>

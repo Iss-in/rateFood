@@ -8,6 +8,8 @@ import { AddDishDialog } from "./components/AddDishDialog";
 import { AddRestaurantDialog } from "./components/AddRestaurantDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Toaster } from 'react-hot-toast';
+import {Button} from "react-day-picker";
+import {Plus} from "lucide-react";
 // Mock data
 const initialDishes: Dish[] = [
   {
@@ -258,13 +260,56 @@ export default function App() {
     setRestaurants(prev => [restaurant, ...prev]);
   }
 
-  useEffect(() => {
-    if (selectedTab === "restaurants") {
-      console.log("Restaurants tab selected, restaurants:", restaurants);
-    }
-  }, [selectedTab, restaurants]);
+  // useEffect(() => {
+  //   if (selectedTab === "restaurants") {
+  //     console.log("Restaurants tab selected, restaurants:", restaurants);
+  //   }
+  // }, [selectedTab, restaurants]);
 
   if (!hasMounted) return null; // Or loading placeholder
+
+  //
+  function AddDishDialogFloatingTrigger({ onAddDish, selectedCity }: { onAddDish: (newDish: Omit<Dish, "id" | "rating">)  => void, selectedCity: string }) {
+    const [open, setOpen] = useState(false);
+    return (
+        <>
+        {open && (
+          <AddDishDialog open={open} onOpenChange={setOpen} onAddDish={onAddDish} selectedCity={selectedCity} />)}
+          <div className="fixed bottom-4 right-4 z-50 block sm:hidden">
+            <button
+                onClick={() => setOpen(true)}
+                className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg flex items-center justify-center"
+                aria-label="Add Dish"
+                title="Add Dish"
+            >
+              <Plus size={24} />
+            </button>
+          </div>
+        </>
+    );
+  }
+
+  function AddRestaurantDialogFloatingTrigger({ onAddRestaurant }: { onAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating">) => void }) {
+    const [open, setOpen] = useState(false);
+    return (
+        <>
+        {open && (
+          <AddRestaurantDialog open={open} onOpenChange={setOpen} onAddRestaurant={onAddRestaurant}  />)}
+          <div className="fixed bottom-4 right-4 z-50 block sm:hidden">
+            <button
+                onClick={() => setOpen(true)}
+                className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg flex items-center justify-center"
+                aria-label="Add Restaurant"
+                title="Add Restaurant"
+            >
+              <Plus size={24} />
+            </button>
+          </div>
+        </>
+    );
+  }
+
+
 
   return (
 
@@ -278,19 +323,7 @@ export default function App() {
           onAddRestaurant={handleAddRestaurant}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-background-secondary">
-      {/*  <div className="mb-8">*/}
-      {/*    <h1 className="text-3xl font-bold mb-2">Food Reviews in {selectedCity}</h1>*/}
-      {/*    <p className="text-muted-foreground">Discover and review the best dishes and restaurants in your city</p>*/}
-      {/*  </div>*/}
-
         <Tabs value={selectedTab} className="w-full   onValueChange={setSelectedTab}">
-          {/*<div className="flex justify-center items-center mb-6">*/}
-          {/*  <TabsList>*/}
-          {/*    <TabsTrigger value="dishes">Dishes</TabsTrigger>*/}
-          {/*    <TabsTrigger value="restaurants">Restaurants</TabsTrigger>*/}
-          {/*  </TabsList>*/}
-          {/*</div>*/}
-
           <TabsContent value="dishes" className="space-y-6" hidden={selectedTab !== "dishes"}>
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
@@ -356,7 +389,16 @@ export default function App() {
             </div>
           </TabsContent>
         </Tabs>
+        {/*<div className="fixed bottom-4 right-4 flex flex-col space-y-4 sm:hidden z-50">*/}
+          {selectedTab === "dishes" && selectedCity && (
+              <AddDishDialogFloatingTrigger onAddDish={handleAddDish} selectedCity={selectedCity} />
+          )}
+          {selectedTab === "restaurants" && selectedCity && (
+              <AddRestaurantDialogFloatingTrigger onAddRestaurant={handleAddRestaurant} />
+          )}
+        {/*</div>*/}
       </div>
     </div>
-  );
+
+);
 }

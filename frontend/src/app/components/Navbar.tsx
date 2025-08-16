@@ -178,6 +178,9 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
     const ITEM_HEIGHT = 40;  // px, height of each city button
 
 
+    const [addDishOpen, setAddDishOpen] = useState(false);
+    const [addRestaurantOpen, setAddRestaurantOpen] = useState(false);
+
 
     return (
         <>
@@ -207,13 +210,22 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
                         <div className="flex items-center space-x-2">
                             {/* Add Dish Button */}
                             {selectedTab === "dishes" && selectedCity && (
-                                <div className="hidden sm:flex min-w-[140px]">
-                                    <AddDishDialog onAddDish={onAddDish} selectedCity={selectedCity} />
+                                <div className="hidden sm:flex min-w-[140px] ml-auto flex justify-end">
+                                    <AddDishDialog
+                                        onAddDish={onAddDish}
+                                        selectedCity={selectedCity}
+                                        open={addDishOpen}
+                                        onOpenChange={setAddDishOpen}
+                                    />
                                 </div>
                             )}
                             {selectedTab === "restaurants" && selectedCity && (
-                                <div className="hidden sm:flex min-w-[140px]">
-                                    <AddRestaurantDialog onAddRestaurant={onAddRestaurant} />
+                                <div className="hidden sm:flex min-w-[140px] ml-auto flex justify-end">
+                                    <AddRestaurantDialog
+                                        onAddRestaurant={onAddRestaurant}
+                                        open={addRestaurantOpen}
+                                        onOpenChange={setAddRestaurantOpen}
+                                    />
                                 </div>
                             )}
                             <button
