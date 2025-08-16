@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import '../styles/globals.css'  // adjust path as needed
+import { Toaster } from 'react-hot-toast';
+// import '../styles/globals.css'  // adjust path as needed
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -27,6 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+      <Toaster position="top-right" />
         {children}
       </body>
     </html>

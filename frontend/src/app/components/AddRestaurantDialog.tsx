@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -73,10 +73,20 @@ export function AddRestaurantDialog({ onAddRestaurant }: AddRestaurantDialogProp
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
-          <Plus className="h-4 w-4 mr-2" />
+        <button data-slot="button"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 has-[&gt;svg]:px-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+               className="lucide lucide-plus h-4 w-4 mr-2" aria-hidden="true">
+            <path d="M5 12h14"></path>
+            <path d="M12 5v14"></path>
+          </svg>
           Add Restaurant
-        </Button>
+        </button>
+        {/*<Button>*/}
+        {/*  <Plus className="h-4 w-4 mr-2"/>*/}
+        {/*  Add Restaurant*/}
+        {/*</Button>*/}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -86,23 +96,23 @@ export function AddRestaurantDialog({ onAddRestaurant }: AddRestaurantDialogProp
           <div>
             <Label htmlFor="restaurant-name">Restaurant Name *</Label>
             <Input
-              id="restaurant-name"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              required
+                id="restaurant-name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+                required
             />
           </div>
-          
+
           <div>
             <Label htmlFor="cuisine">Cuisine Type *</Label>
             <Input
-              id="cuisine"
-              value={formData.cuisine}
-              onChange={(e) => setFormData(prev => ({ ...prev, cuisine: e.target.value }))}
-              required
+                id="cuisine"
+                value={formData.cuisine}
+                onChange={(e) => setFormData(prev => ({...prev, cuisine: e.target.value}))}
+                required
             />
           </div>
-          
+
           {/*<div>*/}
           {/*  <Label htmlFor="description">Description</Label>*/}
           {/*  <Textarea*/}

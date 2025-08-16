@@ -1,13 +1,23 @@
 import { MapPin } from "lucide-react";
 import React, {useState, useEffect, useMemo, useRef} from "react";
 import { FixedSizeList as List, ListChildComponentProps } from "react-window";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { AddDishDialog } from "./AddDishDialog";
+import { AddRestaurantDialog } from "./AddRestaurantDialog";
+import {Dish} from "@/app/components/DishCard";
+import {Restaurant} from "@/app/components/RestaurantCard";
+
 
 interface NavbarProps {
   selectedCity: string;
   onCityChange: (city: string) => void;
+  selectedTab: string;
+  onTabChange: (tab: string) => void;
+  onAddDish: (newDish: Omit<Dish, "id" | "rating">) => void;
+  onAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating">) => void;
 }
 
-export function Navbar({ selectedCity, onCityChange }: NavbarProps) {
+export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, onAddDish, onAddRestaurant  }: NavbarProps) {
     const [cities, setCities] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -166,54 +176,58 @@ export function Navbar({ selectedCity, onCityChange }: NavbarProps) {
     // const LIST_HEIGHT = 300; // px, adjust as needed
     const LIST_HEIGHT = listHeight; // 40vh in px
     const ITEM_HEIGHT = 40;  // px, height of each city button
-  // return (
-  //   <nav className="border-b bg-background sticky top-0 z-50">
-  //     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  //       <div className="flex justify-between items-center h-16">
-  //         <div className="flex items-center space-x-4">
-  //           <h1 className="text-2xl font-bold text-primary">FoodieReview</h1>
-  //         </div>
-  //
-  //         <div className="flex items-center space-x-4">
-  //           <div className="flex items-center space-x-2">
-  //             <MapPin className="h-4 w-4 text-muted-foreground" />
-  //             <Select value={selectedCity} onValueChange={onCityChange} >
-  //               <SelectTrigger className="w-40">
-  //                 <SelectValue placeholder="Select city" />
-  //               </SelectTrigger>
-  //               <SelectContent className="bg-white">
-  //                 {cities.map((city) => (
-  //                   <SelectItem key={city} value={city}  >
-  //                     {city}
-  //                   </SelectItem>
-  //                 ))}
-  //               </SelectContent>
-  //             </Select>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </nav>
-  // );
+
 
 
     return (
         <>
             {/* Navbar */}
             <nav className="border-b bg-background sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <h1 className="text-2xl font-bold text-primary">FoodieReview</h1>
-                        <button
-                            onClick={() => setIsCityModalOpen(true)}
-                            className="flex items-center space-x-2 border rounded px-3 py-1 bg-white"
-                        >
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span>{selectedCity || "Select city"}</span>
-                        </button>
+                <div className="mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
+                        {/* Left: Brand - Always at extreme left */}
+                        <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center">
+                                <span className="text-white text-xl">🍽️</span>
+                            </div>
+                            <h1 className="text-2xl font-bold text-primary hidden sm:flex">FoodieDaddie</h1>
+                        </div>
+
+                        {/* Center: Tabs */}
+                        <div className="flex justify-center">
+                            <Tabs value={selectedTab} onValueChange={onTabChange}>
+                                <TabsList className="flex space-x-4">
+                                    <TabsTrigger value="dishes">Dishes</TabsTrigger>
+                                    <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
+                                </TabsList>
+                            </Tabs>
+                        </div>
+
+                        {/* Right: Add buttons + Location - Always at extreme right */}
+                        <div className="flex items-center space-x-2">
+                            {/* Add Dish Button */}
+                            {selectedTab === "dishes" && selectedCity && (
+                                <div className="hidden sm:flex">
+                                    <AddDishDialog onAddDish={onAddDish} selectedCity={selectedCity} />
+                                </div>
+                            )}
+                            {selectedTab === "restaurants" && selectedCity && (
+                                <div className="hidden sm:flex">
+                                    <AddRestaurantDialog onAddRestaurant={onAddRestaurant} />
+                                </div>
+                            )}
+                            <button
+                                onClick={() => setIsCityModalOpen(true)}
+                                className="flex items-center space-x-2 rounded px-3 py-1 bg-white"
+                            >
+                                <MapPin className="h-4 w-4 text-foreground" />
+                                <span>{selectedCity || "Select city"}, India</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </nav>
+
 
             {/* Overlay & Popup */}
             {isCityModalOpen && (

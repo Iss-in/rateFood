@@ -1,9 +1,7 @@
 package com.ratefood.app.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import java.math.BigDecimal;
@@ -11,6 +9,9 @@ import java.util.List;
 
 @Data
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "dish")
 public class Dish {
 
@@ -19,9 +20,18 @@ public class Dish {
     @Column(name="id")
     private long id;
 
+    @Column(name="image")
+    @Builder.Default
+    private String image = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1160&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+
     @NotNull
     @Column(name="name")
     private String name;
+
+    @NotNull
+    @Column(name="description")
+    private String description;
+
 
 //    @Column(name="cuisine")
 //    private String cuisine;
@@ -43,6 +53,5 @@ public class Dish {
     private Restaurant restaurant;
 
     private List<String> tags;
-
 
 }

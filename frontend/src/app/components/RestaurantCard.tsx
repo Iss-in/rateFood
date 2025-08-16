@@ -26,7 +26,7 @@ interface RestaurantCardProps {
 
 export function RestaurantCard({ restaurant, onRatingChange }: RestaurantCardProps) {
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+    <Card className="overflow-hidden hover:shadow-md transition-shadow gap-0">
       <CardHeader className="p-0">
         <ImageWithFallback
           src={restaurant.image}
@@ -34,8 +34,8 @@ export function RestaurantCard({ restaurant, onRatingChange }: RestaurantCardPro
           className="w-full h-48 object-cover"
         />
       </CardHeader>
-      <CardContent className="p-4">
-        <div className="space-y-3">
+      <CardContent className="px-4">
+        <div className="space-y-1">
           <div>
             <h3 className="font-semibold">{restaurant.name}</h3>
             <p className="text-sm text-muted-foreground">{restaurant.cuisine}</p>
@@ -67,7 +67,7 @@ export function RestaurantCard({ restaurant, onRatingChange }: RestaurantCardPro
           
           <div className="flex flex-wrap gap-1">
             {restaurant.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs bg-gray-200">
+              <Badge key={tag} className="text-xs ">
                 {tag}
               </Badge>
             ))}

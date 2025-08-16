@@ -7,7 +7,7 @@ import { RestaurantCard, Restaurant } from "./components/RestaurantCard";
 import { AddDishDialog } from "./components/AddDishDialog";
 import { AddRestaurantDialog } from "./components/AddRestaurantDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
-
+import { Toaster } from 'react-hot-toast';
 // Mock data
 const initialDishes: Dish[] = [
   {
@@ -21,30 +21,6 @@ const initialDishes: Dish[] = [
     image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&h=300&fit=crop",
     // location: "Downtown",
     // distance: 2.3
-  },
-  {
-    id: "2", 
-    name: "Korean BBQ Bowl",
-    restaurant: "Seoul Kitchen",
-    description: "Marinated bulgogi beef with steamed rice and vegetables",
-    // price: 16.50,
-    // rating: 5,
-    tags: ["Korean", "BBQ", "Rice Bowl", "Meat"],
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    // location: "Koreatown",
-    // distance: 1.8
-  },
-  {
-    id: "3",
-    name: "Fish Tacos",
-    restaurant: "Coastal Cantina",
-    description: "Grilled mahi-mahi with cabbage slaw and chipotle mayo",
-    // price: 14.75,
-    // rating: 3,
-    tags: ["Mexican", "Fish", "Tacos", "Healthy"],
-    image: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400&h=300&fit=crop",
-    // location: "Beach Area",
-    // distance: 5.2
   }
 ];
 
@@ -65,50 +41,22 @@ const initialRestaurants: Restaurant[] = [
     // hours: "5 PM - 11 PM",
     // phone: "(555) 123-4567",
     // priceRange: "$$$"
-  },
-  {
-    id: "2",
-    name: "Seoul Kitchen",
-    cuisine: "Korean",
-    description: "Modern Korean restaurant serving traditional and fusion dishes",
-    rating: 5,
-    tags: ["Korean", "BBQ", "Family Friendly", "Spicy"],
-    image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=300&fit=crop",
-    // location: "Koreatown",
-    // distance: 1.8,
-    // hours: "11 AM - 10 PM",
-    // phone: "(555) 987-6543",
-    // priceRange: "$$"
-  },
-  {
-    id: "3",
-    name: "Coastal Cantina",
-    cuisine: "Mexican",
-    description: "Fresh coastal Mexican cuisine with an ocean view",
-    rating: 3,
-    tags: ["Mexican", "Seafood", "Ocean View", "Casual"],
-    image: "https://images.unsplash.com/photo-1592861956120-e524fc739696?w=400&h=300&fit=crop",
-    // location: "Beach Area",
-    // distance: 5.2,
-    // hours: "12 PM - 9 PM",
-    // phone: "(555) 246-8135",
-    // priceRange: "$$"
   }
 ];
 
 export default function App() {
   // const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string | null>(() => {
+  const [selectedCity, setSelectedCity] = useState<string >(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('selectedCity') || null;
+      return localStorage.getItem('selectedCity') || '';
     }
-    return null;
+    return '';
   });
 
-
-  const [dishes, setDishes] = useState(initialDishes);
-
+  const [selectedTab, setSelectedTab] = useState("dishes");
+  const [dishes, setDishes] = useState<Dish[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1); // or totalCount if you prefer
 
@@ -143,7 +91,36 @@ export default function App() {
         .catch((err) => {
           console.error(err);
         });
+    // console.log("restaurents are ")
+    // console.log(restaurants)
   }, [selectedCity, currentPage]);
+
+
+  useEffect(() => {
+    if (!selectedCity) return; // Exit early if city is not selected yet
+
+    localStorage.setItem('selectedCity', selectedCity);
+
+    fetch(`http://localhost:9000/api/dish/${selectedCity}`) // your backend endpoint URL here
+        .then((res) => {
+          if (!res.ok) throw new Error(`Failed to fetch dishes for ${selectedCity}?page=${currentPage}`);
+          // console.log(res);
+          return res.json();
+        })
+        .then((data) => {
+          console.log(data);
+          setDishes(data.data);
+          setCurrentPage(data.currentPage);
+          setTotalPages(data.totalPages);
+          // onCityChange(data[0]);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    // console.log("restaurents are ")
+    // console.log(restaurants)
+  }, [selectedCity, currentPage]);
+
 
   // Get available tags
   const dishTagOptions = useMemo(() => {
@@ -208,10 +185,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body : JSON.stringify({
-          ...newDish,
-          restaurant: {"id": 1}
-        })
+        body: JSON.stringify(newDish)
       });
 
       if (!response.ok) {
@@ -222,7 +196,8 @@ export default function App() {
       const createdDish: Dish = await response.json();
 
       // Add the returned dish (with id and rating) to state
-      setDishes(prev => [createdDish, ...prev]);
+      // setDishes(prev => [createdDish, ...prev]);
+      // console.log(dishes)
     } catch (error) {
       console.error('Failed to add dish:', error);
       // Optionally, show user-friendly error message or fallback action
@@ -249,29 +224,39 @@ export default function App() {
     setRestaurants(prev => [restaurant, ...prev]);
   }
 
+  useEffect(() => {
+    if (selectedTab === "restaurants") {
+      console.log("Restaurants tab selected, restaurants:", restaurants);
+    }
+  }, [selectedTab, restaurants]);
+
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar selectedCity={selectedCity} onCityChange={setSelectedCity} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Food Reviews in {selectedCity}</h1>
-          <p className="text-muted-foreground">Discover and review the best dishes and restaurants in your city</p>
-        </div>
 
-        <Tabs defaultValue="dishes" className="w-full">
-          <div className="flex justify-between items-center mb-6">
-            <TabsList>
-              <TabsTrigger value="dishes">Dishes</TabsTrigger>
-              <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
-            </TabsList>
-            {selectedCity && <div className="flex space-x-2">
-              <AddDishDialog onAddDish={handleAddDish} />
-              <AddRestaurantDialog onAddRestaurant={handleAddRestaurant} />
-            </div>
-            }
-          </div>
+    <div className="min-h-screen bg-background-secondary">
+      <Navbar
+          selectedCity={selectedCity}
+          onCityChange={setSelectedCity}
+          selectedTab={selectedTab}
+          onTabChange={setSelectedTab}
+          onAddDish={handleAddDish}
+          onAddRestaurant={handleAddRestaurant}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-background-secondary">
+      {/*  <div className="mb-8">*/}
+      {/*    <h1 className="text-3xl font-bold mb-2">Food Reviews in {selectedCity}</h1>*/}
+      {/*    <p className="text-muted-foreground">Discover and review the best dishes and restaurants in your city</p>*/}
+      {/*  </div>*/}
 
-          <TabsContent value="dishes" className="space-y-6">
+        <Tabs value={selectedTab} className="w-full   onValueChange={setSelectedTab}">
+          {/*<div className="flex justify-center items-center mb-6">*/}
+          {/*  <TabsList>*/}
+          {/*    <TabsTrigger value="dishes">Dishes</TabsTrigger>*/}
+          {/*    <TabsTrigger value="restaurants">Restaurants</TabsTrigger>*/}
+          {/*  </TabsList>*/}
+          {/*</div>*/}
+
+          <TabsContent value="dishes" className="space-y-6" hidden={selectedTab !== "dishes"}>
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
                 <FilterPanel
@@ -285,7 +270,7 @@ export default function App() {
                 />
               </div>
               <div className="lg:col-span-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                   {filteredDishes.map(dish => (
                     <DishCard
                       key={dish.id}
@@ -303,7 +288,8 @@ export default function App() {
             </div>
           </TabsContent>
 
-          <TabsContent value="restaurants" className="space-y-6">
+
+          <TabsContent value="restaurants" className="space-y-6" hidden={selectedTab !== "restaurants"}>
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
                 <FilterPanel
@@ -317,7 +303,7 @@ export default function App() {
                 />
               </div>
               <div className="lg:col-span-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                   {filteredRestaurants.map(restaurant => (
                     <RestaurantCard
                       key={restaurant.id}

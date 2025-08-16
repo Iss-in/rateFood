@@ -13,7 +13,7 @@ export function RatingComponent({
   currentRating = 0, 
   onRatingChange, 
   readonly = false,
-  size = "md" 
+  size = "sm"
 }: RatingComponentProps) {
   const [hoverRating, setHoverRating] = useState(0);
   
@@ -42,25 +42,24 @@ export function RatingComponent({
   };
 
   return (
-    <div className="flex items-center space-x-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`${sizeClasses[size]} cursor-pointer transition-colors ${
-            star <= (hoverRating || currentRating)
-              ? "fill-yellow-400 text-yellow-400"
-              : "text-gray-300"
-          } ${readonly ? "cursor-default" : ""}`}
-          onClick={() => handleClick(star)}
-          onMouseEnter={() => handleMouseEnter(star)}
-          onMouseLeave={handleMouseLeave}
-        />
-      ))}
-      {currentRating > 0 && (
-        <span className="ml-2 text-sm text-muted-foreground">
-          ({currentRating}/5)
+      <div className="flex items-center space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+                key={star}
+                className={`${sizeClasses[size]} cursor-pointer transition-colors text-sm ${
+                    star <= (hoverRating || currentRating)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "fill-gray-300 text-gray-300"
+                } ${readonly ? "cursor-default" : ""}`}
+                onClick={() => handleClick(star)}
+                onMouseEnter={() => handleMouseEnter(star)}
+                onMouseLeave={handleMouseLeave}
+            />
+        ))}
+
+        <span className="ml-2 text-sm text-muted-foreground min-w-[50px] block">
+          {currentRating > 0 ? `(${currentRating}/5)` : '\u00A0' /* non-breaking space */}
         </span>
-      )}
-    </div>
+      </div>
   );
 }

@@ -24,7 +24,7 @@ interface DishCardProps {
 
 export function DishCard({ dish, onRatingChange }: DishCardProps) {
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+    <Card className="overflow-hidden hover:shadow-md shadow-md transition-shadow">
       <CardHeader className="p-0">
         <ImageWithFallback
           src={dish.image}
@@ -54,7 +54,7 @@ export function DishCard({ dish, onRatingChange }: DishCardProps) {
           
           <div className="flex flex-wrap gap-1">
             {dish.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
+              <Badge key={tag}  className="text-xs">
                 {tag}
               </Badge>
             ))}
