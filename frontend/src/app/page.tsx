@@ -46,12 +46,17 @@ const initialRestaurants: Restaurant[] = [
 
 export default function App() {
   // const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string >(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('selectedCity') || '';
-    }
-    return '';
-  });
+  // const [selectedCity, setSelectedCity] = useState<string >(() => {
+  //   if (typeof window !== 'undefined') {
+  //     return localStorage.getItem('selectedCity') || '';
+  //   }
+  //   return '';
+  // });
+
+  const [hasMounted, setHasMounted] = useState(false);
+  const [selectedCity, setSelectedCity] = useState("");
+
+
 
   const [selectedTab, setSelectedTab] = useState("dishes");
   const [dishes, setDishes] = useState<Dish[]>([]);
@@ -69,11 +74,17 @@ export default function App() {
   const [restaurantTags, setRestaurantTags] = useState<string[]>([]);
   const [restaurantRange, setRestaurantRange] = useState(10);
 
+  useEffect(() => {
+    setHasMounted(true);
+    const city = localStorage.getItem('selectedCity') || '';
+    setSelectedCity(city);
+  }, []);
+
 
   useEffect(() => {
     if (!selectedCity) return; // Exit early if city is not selected yet
 
-    localStorage.setItem('selectedCity', selectedCity);
+    // localStorage.setItem('selectedCity', selectedCity);
 
     fetch(`http://localhost:9000/api/restaurant/${selectedCity}`) // your backend endpoint URL here
         .then((res) => {
@@ -230,6 +241,7 @@ export default function App() {
     }
   }, [selectedTab, restaurants]);
 
+  if (!hasMounted) return null; // Or loading placeholder
 
   return (
 

@@ -41,6 +41,8 @@ public class DishService {
                 .tags(dto.getTags())
                 .description(dto.getDescription())
                 .build();
+        if(dto.getImage() != null)
+            dishEntity.setImage(dto.getImage());
 
         Dish dishCreated  = dishRepository.save(dishEntity);
         DishResponseDTO responseDto = dishConverter.fromDishtoDishResponseDTO(dishCreated);
