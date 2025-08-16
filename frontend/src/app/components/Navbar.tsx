@@ -51,7 +51,7 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
           return res.json();
         })
         .then((data) => {
-          console.log(data);
+          // console.log(data);
           setCities(data);
           setLoading(false);
           // onCityChange(data[0]);
@@ -207,12 +207,12 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
                         <div className="flex items-center space-x-2">
                             {/* Add Dish Button */}
                             {selectedTab === "dishes" && selectedCity && (
-                                <div className="hidden sm:flex">
+                                <div className="hidden sm:flex min-w-[140px]">
                                     <AddDishDialog onAddDish={onAddDish} selectedCity={selectedCity} />
                                 </div>
                             )}
                             {selectedTab === "restaurants" && selectedCity && (
-                                <div className="hidden sm:flex">
+                                <div className="hidden sm:flex min-w-[140px]">
                                     <AddRestaurantDialog onAddRestaurant={onAddRestaurant} />
                                 </div>
                             )}

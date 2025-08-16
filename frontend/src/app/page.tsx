@@ -62,8 +62,15 @@ export default function App() {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1); // or totalCount if you prefer
+  // const [currentPage, setCurrentPage] = useState(0);
+  // const [totalPages, setTotalPages] = useState(1); // or totalCount if you prefer
+
+
+  const [dishesCurrentPage, setDishesCurrentPage] = useState(0);
+  const [dishesTotalPages, setDishesTotalPages] = useState(1);
+
+  const [restaurantsCurrentPage, setRestaurantsCurrentPage] = useState(0);
+  const [restaurantsTotalPages, setRestaurantsTotalPages] = useState(1);
 
   // Filter states
   const [dishSearch, setDishSearch] = useState("");
@@ -86,17 +93,24 @@ export default function App() {
 
     // localStorage.setItem('selectedCity', selectedCity);
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurant/${selectedCity}`) // your backend endpoint URL here
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurant/${selectedCity}?page=${restaurantsCurrentPage}`) // your backend endpoint URL here
         .then((res) => {
-          if (!res.ok) throw new Error(`Failed to fetch restaurants for ${selectedCity}?page=${currentPage}`);
+          if (!res.ok) throw new Error(`Failed to fetch restaurants for ${selectedCity}?page=${restaurantsCurrentPage}`);
           // console.log(res);
           return res.json();
         })
         .then((data) => {
-          console.log(data);
+          // console.log(data);
           setRestaurants(data.data);
-          setCurrentPage(data.currentPage);
-          setTotalPages(data.totalPages);
+          // Only update currentPage if different
+          // if (restaurantsCurrentPage !== data.currentPage) {
+          //   setRestaurantsCurrentPage(data.currentPage);
+          // }
+
+          // Only update totalPages if different
+          if (restaurantsTotalPages !== data.totalPages) {
+            setRestaurantsTotalPages(data.totalPages);
+          }
           // onCityChange(data[0]);
         })
         .catch((err) => {
@@ -104,7 +118,7 @@ export default function App() {
         });
     // console.log("restaurents are ")
     // console.log(restaurants)
-  }, [selectedCity, currentPage]);
+  }, [selectedCity, restaurantsCurrentPage]);
 
 
   useEffect(() => {
@@ -112,17 +126,26 @@ export default function App() {
 
     localStorage.setItem('selectedCity', selectedCity);
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dish/${selectedCity}`) // your backend endpoint URL here
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dish/${selectedCity}?page=${dishesCurrentPage}`) // your backend endpoint URL here
         .then((res) => {
-          if (!res.ok) throw new Error(`Failed to fetch dishes for ${selectedCity}?page=${currentPage}`);
+          if (!res.ok) throw new Error(`Failed to fetch dishes for ${selectedCity}?page=${dishesCurrentPage}`);
           // console.log(res);
           return res.json();
         })
         .then((data) => {
-          console.log(data);
+          // console.log(data);
           setDishes(data.data);
-          setCurrentPage(data.currentPage);
-          setTotalPages(data.totalPages);
+          // Only update currentPage if different
+          if (dishesCurrentPage !== data.currentPage) {
+            console.log(dishesCurrentPage);
+            console.log(data.currentPage);
+            setDishesCurrentPage(data.currentPage);
+          }
+
+          // Only update totalPages if different
+          if (dishesTotalPages !== data.totalPages) {
+            setDishesTotalPages(data.totalPages);
+          }
           // onCityChange(data[0]);
         })
         .catch((err) => {
@@ -130,7 +153,7 @@ export default function App() {
         });
     // console.log("restaurents are ")
     // console.log(restaurants)
-  }, [selectedCity, currentPage]);
+  }, [selectedCity, dishesCurrentPage]);
 
 
   // Get available tags
