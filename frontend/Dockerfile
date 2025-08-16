@@ -1,36 +1,41 @@
 # Stage 1: Build the Next.js app
 FROM node:20-alpine AS builder
 
-# Set working directory
+# Install pnpm globally
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
 # Copy package.json and lock files
-COPY package.json package-lock.json* ./
+COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN npm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
-# Copy the source code
+# Copy source code
 COPY . .
 
 # Build the Next.js app
-RUN npm run build
+RUN pnpm run build
 
 # Stage 2: Run the production app
 FROM node:20-alpine AS runner
-WORKDIR /app
 
-# Set NODE_ENV for production
+
+WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy built assets and needed files from builder
+
+# Enable pnpm in runner as well!
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy built assets and necessary files from builder
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-# Next.js runs on 3000 by default
 EXPOSE 3000
 
-# Start Next.js
-CMD ["npm", "start"]
+# Start the Next.js app
+CMD ["pnpm", "start"]

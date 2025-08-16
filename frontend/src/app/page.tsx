@@ -86,7 +86,7 @@ export default function App() {
 
     // localStorage.setItem('selectedCity', selectedCity);
 
-    fetch(`http://localhost:9000/api/restaurant/${selectedCity}`) // your backend endpoint URL here
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurant/${selectedCity}`) // your backend endpoint URL here
         .then((res) => {
           if (!res.ok) throw new Error(`Failed to fetch restaurants for ${selectedCity}?page=${currentPage}`);
           // console.log(res);
@@ -112,7 +112,7 @@ export default function App() {
 
     localStorage.setItem('selectedCity', selectedCity);
 
-    fetch(`http://localhost:9000/api/dish/${selectedCity}`) // your backend endpoint URL here
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dish/${selectedCity}`) // your backend endpoint URL here
         .then((res) => {
           if (!res.ok) throw new Error(`Failed to fetch dishes for ${selectedCity}?page=${currentPage}`);
           // console.log(res);
@@ -191,7 +191,7 @@ export default function App() {
     };
     try {
       // Replace 'http://your-backend-api/dishes' with your actual backend URL
-      const response = await fetch('http://localhost:9000/api/dish', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dish`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -224,7 +224,7 @@ export default function App() {
       rating: 0
     };
 
-    const response = await fetch('http://localhost:9000/api/restaurant', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurant`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

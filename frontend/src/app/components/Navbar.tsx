@@ -45,7 +45,7 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
 
 
     useEffect(() => {
-    fetch("http://localhost:9000/api/city") // your backend endpoint URL here
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/city`) // your backend endpoint URL here
         .then((res) => {
           if (!res.ok) throw new Error("Failed to fetch cities");
           return res.json();
