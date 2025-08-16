@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    container_name: postgresql
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+    volumes:
+      - /opt/var/postgres/data:/var/lib/postgresql/data 
+    # command:  bash -c "apt update && apt install libdbi-perl postgresql-plperl-17 -y"
+    networks:
+      docker_network:
+        ipv4_address: 172.25.0.2
+
+
+  adminer:
+    container_name: adminer
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      docker_network:
+        ipv4_address: 172.25.0.3
+
+  foodApp:
+    image: foodApp
+    restart: always
+    container_name: foodApp
+    ports:
+      - 3000:3000
+  
+    networks:
+      docker_network:
+        ipv4_address: 172.25.0.4
+
+
+  foodServer:
+    image: foodServer
+    restart: always
+    container_name: foodServer
+    ports:
+      - 9000:9000  
+
+    networks:
+      docker_network:
+        ipv4_address: 172.25.0.5
+
+networks:
+  docker_network:
+    name: docker_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

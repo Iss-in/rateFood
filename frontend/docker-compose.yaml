@@ -1,0 +1,71 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    container_name: postgresql
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+    volumes:
+      - /opt/var/postgres/data:/var/lib/postgresql/data 
+    # command:  bash -c "apt update && apt install libdbi-perl postgresql-plperl-17 -y"
+    networks:
+      docker_network:
+        ipv4_address: 172.25.0.2
+
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: foodapp-backend
+    restart: always
+    ports:
+      - 8080:8080
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      - db
+    networks:
+      docker_network:
+        ipv4_address: 172.25.0.3
+        
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    container_name: foodapp-frontend
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8080  # frontend calls backend
+    depends_on:
+      - db
+    networks:
+      docker_network:
+        ipv4_address: 172.25.0.4
+
+
+  foodServer:
+    image: foodServer
+    restart: always
+    container_name: foodServer
+    ports:
+      - 9000:9000  
+
+    networks:
+      docker_network:
+        ipv4_address: 172.25.0.5
+
+networks:
+  docker_network:
+    name: docker_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
