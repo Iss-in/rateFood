@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS restaurent (
+CREATE TABLE IF NOT EXISTS restaurant (
                             id SERIAL PRIMARY KEY,
                             name VARCHAR(255),
                             location VARCHAR(255),
@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS  dish (
                       upvote INT,
                       downvote INT,
                       rating FLOAT,
-                      restaurent_id INT NOT NULL,
-                      FOREIGN KEY (restaurent_id) REFERENCES restaurent(id)
+                      restaurant_id INT NOT NULL,
+                      FOREIGN KEY (restaurant_id) REFERENCES restaurant(id)
                           ON DELETE CASCADE
                           ON UPDATE CASCADE
 );

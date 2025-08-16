@@ -5,7 +5,7 @@ import com.ratefood.app.dto.response.PageResponseDTO;
 import com.ratefood.app.entity.Restaurant;
 import com.ratefood.app.entity.Restaurant;
 import com.ratefood.app.repository.RestaurantRepository;
-import com.ratefood.app.service.RestaurentService;
+import com.ratefood.app.service.RestaurantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,17 +25,17 @@ public class RestaurantController {
     private RestaurantRepository restaurantRepository;
 
     @Autowired
-    private RestaurentService restaurantService;
+    private RestaurantService restaurantService;
 
     @PostMapping("/restaurant")
-    public ResponseEntity<Restaurant> addRestaurent(@RequestBody RestaurantRequestDTO restaurantDTO) {
+    public ResponseEntity<Restaurant> addRestaurant(@RequestBody RestaurantRequestDTO restaurantDTO) {
         Restaurant newRestaurant = restaurantService.addRestaurant(restaurantDTO);
         return new ResponseEntity<>(newRestaurant, HttpStatus.CREATED);
     }
 
 
     @GetMapping("/restaurant/{city}")
-    public PageResponseDTO<List<Restaurant>> getRestaurents(
+    public PageResponseDTO<List<Restaurant>> getRestaurants(
         @PathVariable String city,
         @RequestParam(required = false) String name,
         @RequestParam(required = false) Float minRating,

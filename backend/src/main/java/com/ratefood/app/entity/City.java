@@ -22,6 +22,6 @@ public class City {
     public List<Integer> pincode;
 
 //    @OneToMany(mappedBy = "city")
-//    private List<Restaurant> restaurents;
+//    private List<Restaurant> restaurants;
 
 }
