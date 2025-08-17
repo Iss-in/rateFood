@@ -319,6 +319,14 @@ export default function App() {
     );
   }
 
+  // load city on startup
+  useEffect(() => {
+    const savedCity = localStorage.getItem('selectedCity');
+    if (savedCity) {
+      setSelectedCity(savedCity);
+    }
+  }, []);
+
 
 
   return (

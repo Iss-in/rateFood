@@ -52,6 +52,13 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
     }, []);
 
 
+    useEffect(() => {
+        if (selectedCity) {
+            localStorage.setItem('selectedCity', selectedCity);
+        }
+    }, [selectedCity]);
+
+
     // useEffect(() => {
     // fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/city`) // your backend endpoint URL here
     //     .then((res) => {
