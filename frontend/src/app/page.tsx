@@ -276,6 +276,15 @@ export default function App() {
   //   }
   // }, [selectedTab, restaurants]);
 
+  // load city on startup
+  useEffect(() => {
+    const savedCity = localStorage.getItem('selectedCity');
+    if (savedCity) {
+      setSelectedCity(savedCity);
+    }
+  }, []);
+
+
   if (!hasMounted) return null; // Or loading placeholder
 
   //
@@ -319,13 +328,6 @@ export default function App() {
     );
   }
 
-  // load city on startup
-  useEffect(() => {
-    const savedCity = localStorage.getItem('selectedCity');
-    if (savedCity) {
-      setSelectedCity(savedCity);
-    }
-  }, []);
 
 
 
