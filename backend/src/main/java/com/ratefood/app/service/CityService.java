@@ -24,7 +24,7 @@ public class CityService {
         if(name == null || name.isBlank())
             page = cityRepository.findAll(pageable);
         else
-            page = cityRepository.findByNameStartingWithIgnoreCase(name, pageable);
+            page = cityRepository.findByNameWordPrefix(name, pageable);
         List<String> cityNames = page.getContent()
                 .stream()
                 .map(City::getName)
