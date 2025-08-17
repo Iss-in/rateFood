@@ -67,12 +67,15 @@ export default function App() {
   // const [currentPage, setCurrentPage] = useState(0);
   // const [totalPages, setTotalPages] = useState(1); // or totalCount if you prefer
 
-
   const [dishesCurrentPage, setDishesCurrentPage] = useState(0);
   const [dishesTotalPages, setDishesTotalPages] = useState(1);
+  const [loadingDishes, setLoadingDishes] = useState(false);
+  const [hasMoreDishes, setHasMoreDishes] = useState(true);
 
   const [restaurantsCurrentPage, setRestaurantsCurrentPage] = useState(0);
   const [restaurantsTotalPages, setRestaurantsTotalPages] = useState(1);
+  const [loadingRestaurants, setLoadingRestaurants] = useState(false);
+  const [hasMoreRestaurants, setHasMoreRestaurants] = useState(true);
 
   // Filter states
   const [dishSearch, setDishSearch] = useState("");
@@ -89,10 +92,16 @@ export default function App() {
     setSelectedCity(city);
   }, []);
 
+  useEffect(() => {
+    setRestaurants([]);
+    setRestaurantsCurrentPage(0);
+    setHasMoreRestaurants(true);
+  }, [selectedCity]);
+
 
   useEffect(() => {
     if (!selectedCity) return; // Exit early if city is not selected yet
-
+    setLoadingRestaurants(true);
     // localStorage.setItem('selectedCity', selectedCity);
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurant/${selectedCity}?page=${restaurantsCurrentPage}`) // your backend endpoint URL here
@@ -101,32 +110,41 @@ export default function App() {
           // console.log(res);
           return res.json();
         })
-        .then((data) => {
-          // console.log(data);
-          setRestaurants(data.data);
-          // Only update currentPage if different
-          // if (restaurantsCurrentPage !== data.currentPage) {
-          //   setRestaurantsCurrentPage(data.currentPage);
-          // }
-
-          // Only update totalPages if different
-          if (restaurantsTotalPages !== data.totalPages) {
-            setRestaurantsTotalPages(data.totalPages);
-          }
-          // onCityChange(data[0]);
+        .then(data => {
+          setRestaurants(prev =>
+              restaurantsCurrentPage === 0
+                  ? data.data
+                  : [...prev, ...data.data]
+          );
+          setRestaurantsTotalPages(data.totalPages);
+          setHasMoreRestaurants(restaurantsCurrentPage + 1 < data.totalPages);
         })
-        .catch((err) => {
-          console.error(err);
-        });
+        .catch(err => console.error(err))
+        .finally(() => setLoadingRestaurants(false));
     // console.log("restaurents are ")
     // console.log(restaurants)
   }, [selectedCity, restaurantsCurrentPage]);
 
+  useEffect(() => {
+    function handleScroll() {
+      if (
+          window.innerHeight + window.scrollY >= document.body.offsetHeight - 300 // 300px from bottom
+          && !loadingRestaurants
+          && hasMoreRestaurants
+      ) {
+        setRestaurantsCurrentPage(prev => prev + 1);
+      }
+    }
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadingRestaurants, hasMoreRestaurants]);
+
+
 
   useEffect(() => {
     if (!selectedCity) return; // Exit early if city is not selected yet
-
-    localStorage.setItem('selectedCity', selectedCity);
+    setLoadingDishes(true);
+    // localStorage.setItem('selectedCity', selectedCity);
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dish/${selectedCity}?page=${dishesCurrentPage}`) // your backend endpoint URL here
         .then((res) => {
@@ -134,25 +152,17 @@ export default function App() {
           // console.log(res);
           return res.json();
         })
-        .then((data) => {
-          // console.log(data);
-          setDishes(data.data);
-          // Only update currentPage if different
-          if (dishesCurrentPage !== data.currentPage) {
-            console.log(dishesCurrentPage);
-            console.log(data.currentPage);
-            setDishesCurrentPage(data.currentPage);
-          }
-
-          // Only update totalPages if different
-          if (dishesTotalPages !== data.totalPages) {
-            setDishesTotalPages(data.totalPages);
-          }
-          // onCityChange(data[0]);
+        .then(data => {
+          setDishes(prev =>
+              dishesCurrentPage === 0
+                  ? data.data
+                  : [...prev, ...data.data]
+          );
+          setDishesTotalPages(data.totalPages);
+          setHasMoreDishes(dishesCurrentPage + 1 < data.totalPages);
         })
-        .catch((err) => {
-          console.error(err);
-        });
+        .catch(err => console.error(err))
+        .finally(() => setLoadingDishes(false));
     // console.log("restaurents are ")
     // console.log(restaurants)
   }, [selectedCity, dishesCurrentPage]);

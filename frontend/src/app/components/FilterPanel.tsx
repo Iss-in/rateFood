@@ -52,34 +52,34 @@ export function FilterPanel({
         </div>
 
         {/* Tags */}
-        <div>
-          <h3 className="mb-3">Tags</h3>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {availableTags.map((tag) => (
-              <Badge
-                key={tag}
-                variant={selectedTags.includes(tag) ? "default" : "outline"}
-                className="cursor-pointer text-sm"
-                onClick={() => toggleTag(tag)}
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
-          {selectedTags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {selectedTags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="bg-gray-200 px-3 flex items-center space-x-1 text-sm">
-                    {tag}
-                  <button
-                    className="p-0 m-0 text-sm leading-none cursor-pointer"
-                    onClick={() => removeTag(tag)}
-                  >×</button>
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
+        {/*<div>*/}
+        {/*  <h3 className="mb-3">Tags</h3>*/}
+        {/*  <div className="flex flex-wrap gap-2 mb-3">*/}
+        {/*    {availableTags.map((tag) => (*/}
+        {/*      <Badge*/}
+        {/*        key={tag}*/}
+        {/*        variant={selectedTags.includes(tag) ? "default" : "outline"}*/}
+        {/*        className="cursor-pointer text-sm"*/}
+        {/*        onClick={() => toggleTag(tag)}*/}
+        {/*      >*/}
+        {/*        {tag}*/}
+        {/*      </Badge>*/}
+        {/*    ))}*/}
+        {/*  </div>*/}
+        {/*  {selectedTags.length > 0 && (*/}
+        {/*    <div className="flex flex-wrap gap-2">*/}
+        {/*      {selectedTags.map((tag) => (*/}
+        {/*          <Badge key={tag} variant="secondary" className="bg-gray-200 px-3 flex items-center space-x-1 text-sm">*/}
+        {/*            {tag}*/}
+        {/*          <button*/}
+        {/*            className="p-0 m-0 text-sm leading-none cursor-pointer"*/}
+        {/*            onClick={() => removeTag(tag)}*/}
+        {/*          >×</button>*/}
+        {/*        </Badge>*/}
+        {/*      ))}*/}
+        {/*    </div>*/}
+        {/*  )}*/}
+        {/*</div>*/}
 
         {/* Location Range */}
         <div>

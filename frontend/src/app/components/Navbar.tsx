@@ -19,15 +19,23 @@ interface NavbarProps {
 
 export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, onAddDish, onAddRestaurant  }: NavbarProps) {
     const [cities, setCities] = useState<string[]>([]);
-    const [loading, setLoading] = useState(true);
-
     const [citySearch, setCitySearch] = useState("");
+    const [filteredCities, setFilteredCities] = useState<string[]>([]);
+    const [cityPage, setCityPage] = useState(0);
+    const [cityTotalPages, setCityTotalPages] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true); // indicates if more cities available
+    const [highlightedIndex, setHighlightedIndex] = useState(0);
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
+    const PAGE_SIZE = 20; // or adjust per backend
+
+
     const [isCityModalOpen, setIsCityModalOpen] = useState(false);
     const searchInputRef = useRef<HTMLInputElement>(null);
     const modalRef = useRef<HTMLDivElement>(null); // for outside click detection
-    const [highlightedIndex, setHighlightedIndex] = useState(0);
     const listRef = useRef<List>(null);
 
+    const resultListRef = useRef<HTMLDivElement>(null);
 
     // keep updating window height
     const [listHeight, setListHeight] = useState(0);
@@ -44,23 +52,53 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
     }, []);
 
 
+    // useEffect(() => {
+    // fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/city`) // your backend endpoint URL here
+    //     .then((res) => {
+    //       if (!res.ok) throw new Error("Failed to fetch cities");
+    //       return res.json();
+    //     })
+    //     .then((data) => {
+    //       // console.log(data);
+    //       setCities(data);
+    //       setLoading(false);
+    //       // onCityChange(data[0]);
+    //     })
+    //     .catch((err) => {
+    //       console.error(err);
+    //       setLoading(false);
+    //     });
+    // }, []);
     useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/city`) // your backend endpoint URL here
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch cities");
-          return res.json();
-        })
-        .then((data) => {
-          // console.log(data);
-          setCities(data);
-          setLoading(false);
-          // onCityChange(data[0]);
-        })
-        .catch((err) => {
-          console.error(err);
-          setLoading(false);
-        });
-    }, []);
+        if (!isCityModalOpen) return;
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            setLoading(true);
+            fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/city?name=${encodeURIComponent(citySearch)}&page=0&size=${PAGE_SIZE}`
+            )
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to fetch cities");
+                    return res.json();
+                })
+                .then(data => {
+                    setFilteredCities(data.data);
+                    setCityTotalPages(data.totalPages);
+                    setHasMore(cityTotalPages > 1); // optional, can still track if wanted
+                })
+                .catch(() => {
+                    setFilteredCities([]);
+                    setCityTotalPages(1);
+                    setHasMore(false);
+                })
+                .finally(() => setLoading(false));
+        }, 300);
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, [citySearch, isCityModalOpen]);
+
+
 
 
     // autqoficus search bar
@@ -142,14 +180,14 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
 
 
 
-    // // Filter functions for cities
-    const filteredCities = useMemo(() => {
-    return cities.filter(city => {
-      const matchesSearch = city.toLowerCase().includes(citySearch.toLowerCase())
-
-      return matchesSearch
-    });
-    }, [cities, citySearch]);
+    // // // Filter functions for cities
+    // const filteredCities = useMemo(() => {
+    // return cities.filter(city => {
+    //   const matchesSearch = city.toLowerCase().includes(citySearch.toLowerCase())
+    //
+    //   return matchesSearch
+    // });
+    // }, [cities, citySearch]);
 
 
     const Row = ({ index, style }: ListChildComponentProps) => {
@@ -233,7 +271,7 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
                                 className="flex items-center space-x-2 rounded px-3 py-1 bg-white"
                             >
                                 <MapPin className="h-4 w-4 text-foreground" />
-                                <span>{selectedCity || "Select city"}, India</span>
+                                <span>{selectedCity || "Select city"}</span>
                             </button>
                         </div>
                     </div>
