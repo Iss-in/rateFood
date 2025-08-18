@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class RestaurantController {
     @Autowired
     private RestaurantService restaurantService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PostMapping("/restaurant")
     public ResponseEntity<Restaurant> addRestaurant(@RequestBody RestaurantRequestDTO restaurantDTO) {
         Restaurant newRestaurant = restaurantService.addRestaurant(restaurantDTO);

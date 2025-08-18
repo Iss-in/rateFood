@@ -37,4 +37,6 @@ public class RestaurantRequestDTO {
 
     private String city;
 
+    private boolean draft;
+
 }

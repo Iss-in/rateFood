@@ -9,15 +9,19 @@ import com.ratefood.app.entity.Restaurant;
 import com.ratefood.app.repository.DishRepository;
 import com.ratefood.app.repository.RestaurantRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.AttributeAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class DishService {
 
@@ -31,6 +35,12 @@ public class DishService {
     DishConverter dishConverter;
 
     public DishResponseDTO createDish(DishRequestDTO dto){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
+
+        dto.setDraft(isAdmin);  // true if admin, false if not
 
         String restaurantName = dto.getRestaurant();
         Restaurant restaurant =  restaurantRepository.findByName(restaurantName).orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));

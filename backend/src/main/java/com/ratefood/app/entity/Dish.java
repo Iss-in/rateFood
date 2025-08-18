@@ -52,6 +52,10 @@ public class Dish {
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
 
+    @Column(name="tags")
     private List<String> tags;
 
+    @Column
+    @Builder.Default
+    private boolean draft = false;
 }

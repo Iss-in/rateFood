@@ -9,6 +9,8 @@ import com.ratefood.app.repository.RestaurantRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -44,6 +46,13 @@ public class RestaurantService {
     }
 
     public Restaurant addRestaurant(RestaurantRequestDTO restaurantDTO){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
+
+        restaurantDTO.setDraft(isAdmin);  // true if admin, false if not
+
         String cityName = restaurantDTO.getCity();
         City city = cityRepository.findByName(cityName);
         Restaurant restaurant = Restaurant.builder()

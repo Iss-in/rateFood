@@ -58,4 +58,8 @@ public class Restaurant {
     @JoinColumn(name = "city_id", nullable = false)
     private City city;
 
+    @Column
+    @Builder.Default
+    private boolean draft = false;
+
 }

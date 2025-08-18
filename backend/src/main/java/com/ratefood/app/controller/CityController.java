@@ -35,13 +35,6 @@ public class CityController {
             ) {
         PageResponseDTO<List<String>> cities = cityService.getCities(name, pageable);
         return cities;
-//        List<String> cityNames = cityRepository.findAllByOrderByIdAsc()
-//                .stream()
-//                .map(City::getName)
-////                .limit(30)
-//                .collect(Collectors.toList());
-//        cityNames.set(7, "Kanpur");
-//        return new ResponseEntity<>(cityNames, HttpStatus.OK);
     }
 
 }

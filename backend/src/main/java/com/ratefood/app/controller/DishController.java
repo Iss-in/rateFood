@@ -9,18 +9,26 @@ import com.ratefood.app.repository.DishRepository;
 import com.ratefood.app.repository.RestaurantRepository;
 import com.ratefood.app.service.DishService;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api")
 public class DishController {
+//    private static final Logger log = LoggerFactory.getLogger(DishController.class);
     private DishRepository dishRepository;
 
     @Autowired
@@ -33,12 +41,14 @@ public class DishController {
         this.dishRepository = dishRepository;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PostMapping("/dish")
     public ResponseEntity<DishResponseDTO> addDish(@RequestBody DishRequestDTO dishDTO) {
         DishResponseDTO newDish = dishService.createDish(dishDTO);
         return new ResponseEntity<>(newDish, HttpStatus.CREATED);
     }
 
+//    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/dish/{city}")
     public PageResponseDTO<List<DishResponseDTO>> getdishes(
             @PathVariable String city,
@@ -54,6 +64,8 @@ public class DishController {
     )
 
     {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("User with roles: {} is getting dishes.", authentication.getAuthorities());
         PageResponseDTO<List<DishResponseDTO>> dishes = dishService.getDishes(name, city, minRating, maxRating,
                 currentLatitude, currentLongitude, maxDistanceKm, pageable);
         return dishes;
