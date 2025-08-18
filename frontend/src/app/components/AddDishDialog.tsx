@@ -95,7 +95,7 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/restaurant/${selectedCity}?name=${encodeURIComponent(
+          `${process.env.NEXT_PUBLIC_API_URL}/restaurant/${selectedCity}?name=${encodeURIComponent(
               query
           )}&page=0&size=10`
       )

@@ -1,0 +1,36 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: api-gateway
+
+  datasource:
+    url: jdbc:postgresql://172.25.0.3:5432/foodapp
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+  sql:
+    init:
+      mode: never
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: foodapp
+              uri: http://localhost:8081
+              predicates:
+                - Path=/foodapp/api/**
+              filters:
+                - StripPrefix=1
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: INFO
+

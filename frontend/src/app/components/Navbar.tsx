@@ -82,7 +82,7 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
         debounceRef.current = setTimeout(() => {
             setLoading(true);
             fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/city?name=${encodeURIComponent(citySearch)}&page=0&size=${PAGE_SIZE}`
+                `${process.env.NEXT_PUBLIC_API_URL}/city?name=${encodeURIComponent(citySearch)}&page=0&size=${PAGE_SIZE}`
             )
                 .then(res => {
                     if (!res.ok) throw new Error("Failed to fetch cities");
