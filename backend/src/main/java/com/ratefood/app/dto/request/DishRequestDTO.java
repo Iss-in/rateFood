@@ -14,6 +14,8 @@ import java.util.List;
 @Builder
 public class DishRequestDTO {
 
+    public long id;
+    
     private String name;
 
     private String restaurant;
@@ -25,6 +27,6 @@ public class DishRequestDTO {
     private String image;
 
     @Builder.Default
-    private boolean draft = false; // true for draft, false for published
+    private boolean isDraft = false; // true for draft, false for published
 
 }

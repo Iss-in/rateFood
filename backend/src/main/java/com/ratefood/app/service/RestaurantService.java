@@ -1,11 +1,15 @@
 package com.ratefood.app.service;
 
+import com.ratefood.app.converter.RestaurantConverter;
 import com.ratefood.app.dto.request.RestaurantRequestDTO;
+import com.ratefood.app.dto.response.DishResponseDTO;
 import com.ratefood.app.dto.response.PageResponseDTO;
-import com.ratefood.app.entity.City;
-import com.ratefood.app.entity.Restaurant;
+import com.ratefood.app.dto.response.RestaurantResponseDTO;
+import com.ratefood.app.entity.*;
 import com.ratefood.app.repository.CityRepository;
+import com.ratefood.app.repository.FavouriteRestaurantRepository;
 import com.ratefood.app.repository.RestaurantRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RestaurantService {
@@ -24,7 +29,13 @@ public class RestaurantService {
     @Autowired
     private CityRepository cityRepository;
 
-    public PageResponseDTO<List<Restaurant>> getRestaurants(
+    @Autowired
+    private FavouriteRestaurantRepository favouriteRestaurantRepository;
+
+    @Autowired
+    private RestaurantConverter restaurantConverter;
+
+    public PageResponseDTO<List<RestaurantResponseDTO>> getRestaurants(
             String name,
             String city,
             Float minRating,
@@ -32,13 +43,14 @@ public class RestaurantService {
             Double currentLatitude,
             Double currentLongitude,
             Double maxDistanceKm,
-            Pageable pageable
+            Pageable pageable,
+            Long userId
     ){
         Page<Restaurant> restaurants = restaurantRepository.getRestaurants(name, city, minRating, maxRating, currentLatitude,
                 currentLongitude, maxDistanceKm, pageable);
 
-        PageResponseDTO<List<Restaurant>> dto = new PageResponseDTO<>();
-        dto.setData(restaurants.getContent());
+        PageResponseDTO<List<RestaurantResponseDTO>> dto = new PageResponseDTO<>();
+        dto.setData(restaurants.getContent().stream().map(restaurant -> restaurantConverter.fromRestaurantToRestaurantResponseDTO(restaurant, userId)).collect(java.util.stream.Collectors.toList()));
         dto.setTotalPages(restaurants.getTotalPages());
         dto.setTotalElements((int) restaurants.getTotalElements());
         dto.setCurrentPage(restaurants.getNumber());
@@ -68,4 +80,44 @@ public class RestaurantService {
                 .build();
         return restaurantRepository.save(restaurant);
     }
+
+
+    public PageResponseDTO<List<RestaurantResponseDTO>> getFavouriteRestaurants(
+            String city,
+            Pageable pageable,
+            Long userId
+    ) {
+        Page<Restaurant> restaurants = restaurantRepository.getRestaurantsByCIty(city, pageable);
+
+        PageResponseDTO<List<RestaurantResponseDTO>> dto = new PageResponseDTO<>();
+        List<RestaurantResponseDTO> dtoList = restaurants.getContent().stream().map(restaurant -> restaurantConverter.fromRestaurantToRestaurantResponseDTO(restaurant, userId)).collect(Collectors.toList());
+        dto.setData(dtoList.stream().filter(dish -> dish.getIsFavourite() != null && dish.getIsFavourite()).collect(Collectors.toList()));
+        dto.setTotalPages(restaurants.getTotalPages());
+        dto.setTotalElements((int) restaurants.getTotalElements());
+        dto.setCurrentPage(restaurants.getNumber());
+        return dto;
+    }
+
+
+    public Boolean markRestaurantFavourite(long restaurantId , Long userId){
+
+        FavouriteRestaurant favouriteRestaurant = favouriteRestaurantRepository.
+                getFavouriteRestaurantByUserIdAndRestaurantId(userId, restaurantId).orElseGet(() -> {
+                    FavouriteRestaurant newFavouriteRestaurant = FavouriteRestaurant.builder()
+                            .restaurant(restaurantRepository.findById(restaurantId).orElseThrow(() -> new EntityNotFoundException("Dish not found")))
+                            .userId(userId)
+                            .build();
+                    return newFavouriteRestaurant;
+                });
+        favouriteRestaurantRepository.save(favouriteRestaurant);
+        return Boolean.TRUE;
+    }
+
+    public Boolean unMarkRestaurantFavourite(long restaurantId , Long userId){
+        FavouriteRestaurant favouriteRestaurant = favouriteRestaurantRepository.getFavouriteRestaurantByUserIdAndRestaurantId(userId, restaurantId).
+                orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+        favouriteRestaurantRepository.delete(favouriteRestaurant);
+        return Boolean.TRUE;
+    }
+
 }

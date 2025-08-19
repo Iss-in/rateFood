@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -57,5 +58,6 @@ public class Dish {
 
     @Column
     @Builder.Default
-    private boolean draft = false;
+    private boolean isDraft = false;
+
 }

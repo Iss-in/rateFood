@@ -18,6 +18,7 @@ public interface DishRepository extends JpaRepository<Dish, Long> {
   JOIN r.city c
   WHERE (:name IS NULL OR :name = '' OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
     AND LOWER(c.name) = LOWER(:city)
+    AND d.isDraft = FALSE 
 
 """)
     Page<Dish> getDishes(
@@ -32,5 +33,6 @@ public interface DishRepository extends JpaRepository<Dish, Long> {
     );
 
 
+    Page<Dish> findAll(Pageable pageable);
 }
 

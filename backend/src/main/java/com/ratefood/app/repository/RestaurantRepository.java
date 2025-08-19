@@ -1,5 +1,6 @@
 package com.ratefood.app.repository;
 
+import com.ratefood.app.entity.Dish;
 import com.ratefood.app.entity.Restaurant;
 
 import org.springframework.data.domain.Page;
@@ -29,6 +30,19 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> , 
             @Param("maxDistanceKm") Double maxDistanceKm,
             Pageable pageable
     );
+
+
+    @Query("""
+  SELECT r FROM Restaurant r
+  JOIN r.city c
+  WHERE  LOWER(c.name) = LOWER(:city)
+
+""")
+    Page<Restaurant> getRestaurantsByCIty(
+            @Param("city") String city,
+            Pageable pageable
+    );
+
 
     Optional<Restaurant> findByName(String name);
 }

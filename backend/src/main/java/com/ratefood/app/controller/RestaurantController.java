@@ -1,7 +1,9 @@
 package com.ratefood.app.controller;
 
 import com.ratefood.app.dto.request.RestaurantRequestDTO;
+import com.ratefood.app.dto.response.DishResponseDTO;
 import com.ratefood.app.dto.response.PageResponseDTO;
+import com.ratefood.app.dto.response.RestaurantResponseDTO;
 import com.ratefood.app.entity.Restaurant;
 import com.ratefood.app.entity.Restaurant;
 import com.ratefood.app.repository.RestaurantRepository;
@@ -14,6 +16,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,16 +32,28 @@ public class RestaurantController {
     @Autowired
     private RestaurantService restaurantService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @PostMapping("/restaurant")
     public ResponseEntity<Restaurant> addRestaurant(@RequestBody RestaurantRequestDTO restaurantDTO) {
         Restaurant newRestaurant = restaurantService.addRestaurant(restaurantDTO);
         return new ResponseEntity<>(newRestaurant, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PostMapping("/restaurant/favourite/{restaurantId}")
+    public ResponseEntity<Boolean> markRestaurantFavourite(@PathVariable long restaurantId, @RequestHeader("X-User-Id") Long userId) {
+        return new ResponseEntity<>(restaurantService.markRestaurantFavourite(restaurantId, userId), HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PostMapping("/restaurant/unFavourite/{restaurantId}")
+    public ResponseEntity<Boolean> markRestaurantUnFavourite(@PathVariable long restaurantId, @RequestHeader("X-User-Id") Long userId) {
+        return new ResponseEntity<>(restaurantService.unMarkRestaurantFavourite(restaurantId, userId), HttpStatus.ACCEPTED);
+    }
+
 
     @GetMapping("/restaurant/{city}")
-    public PageResponseDTO<List<Restaurant>> getRestaurants(
+    public PageResponseDTO<List<RestaurantResponseDTO>> getRestaurants(
         @PathVariable String city,
         @RequestParam(required = false) String name,
         @RequestParam(required = false) Float minRating,
@@ -47,13 +63,30 @@ public class RestaurantController {
         @RequestParam(required = false) Double maxDistanceKm,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
-        @PageableDefault Pageable pageable
-        )
+        @PageableDefault Pageable pageable,
+        @RequestHeader(value = "X-User-Id", required = false, defaultValue = "0") String userId
+    )
 
     {
-        PageResponseDTO<List<Restaurant>> restaurants = restaurantService.getRestaurants(name, city, minRating, maxRating,
-                currentLatitude, currentLongitude, maxDistanceKm, pageable);
+        PageResponseDTO<List<RestaurantResponseDTO>> restaurants = restaurantService.getRestaurants(name, city, minRating, maxRating,
+                currentLatitude, currentLongitude, maxDistanceKm, pageable,  Long.parseLong(userId));
         return restaurants;
 //        return new ResponseEntity<>(restaurants, HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @GetMapping("/restaurant/favourites/{city}")
+    public PageResponseDTO<List<RestaurantResponseDTO>> getRestaurants(
+            @PathVariable String city,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @PageableDefault Pageable pageable,
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "0") String userId
+    ){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+//        log.info("User with roles: {} is getting dishes.", authentication.getAuthorities());
+        PageResponseDTO<List<RestaurantResponseDTO>> restaurants = restaurantService.getFavouriteRestaurants(city, pageable, Long.parseLong(userId));
+        return restaurants;
     }
 }

@@ -51,15 +51,9 @@ public class Restaurant {
     @Builder.Default
     private BigDecimal longitude = BigDecimal.valueOf(28.6139);
 
-//    @OneToMany(mappedBy = "restaurant")
-//    private List<Dish> dishes;
 
     @ManyToOne
     @JoinColumn(name = "city_id", nullable = false)
     private City city;
-
-    @Column
-    @Builder.Default
-    private boolean draft = false;
 
 }

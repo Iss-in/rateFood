@@ -21,4 +21,7 @@ public class DishResponseDTO {
     private String description;
 
     private String image;
+
+    @Builder.Default
+    private Boolean isFavourite = false;
 }

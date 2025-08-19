@@ -27,4 +27,9 @@ public class AuthController {
     public Mono<ResponseEntity<JwtAuthenticationResponse>> signin(@RequestBody SignInRequest request) {
         return authenticationService.signin(request).map(ResponseEntity::ok);
     }
+
+    @PostMapping("/logout")
+    public Mono<ResponseEntity<String>> logout() {
+        return Mono.just(ResponseEntity.ok("Logout successful"));
+    }
 }

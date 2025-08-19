@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Restaurant } from "./RestaurantCard";
 
 interface AddRestaurantDialogProps {

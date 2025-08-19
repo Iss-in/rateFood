@@ -2,13 +2,14 @@ import React from "react";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useRef } from "react";
+import { fetchWithAuth } from "@/lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Dish } from "./DishCard";
 import toast from 'react-hot-toast';
 interface AddDishDialogProps {
@@ -38,14 +39,13 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1); // -1 means nothing highlighted
-  const [isRestaurantValid, setIsRestaurantValid] = useState(false);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const [restaurantError, setRestaurantError] = useState("");
 
   const handleBlur = () => {
-    setIsRestaurantValid(false)
+    onValidate(false)
 
     setTimeout(() => {
       setShowDropdown(false);
@@ -63,7 +63,6 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
         setRestaurantError("Please select a restaurant from the list.");
       } else {
         setRestaurantError("");
-        setIsRestaurantValid(true)
         onValidate(true);   // <-- Add this line
         // console.log(`resutaurent validity ${isRestaurantValid}`)
       }
@@ -94,8 +93,8 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
     }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/restaurant/${selectedCity}?name=${encodeURIComponent(
+      fetchWithAuth(
+          `${process.env.NEXT_PUBLIC_API_URL}/foodapp/restaurant/${selectedCity}?name=${encodeURIComponent(
               query
           )}&page=0&size=10`
       )
@@ -149,7 +148,6 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
     setRestaurant(restaurantName);
     setShowDropdown(false);
     setRestaurantError(""); // Clear error on valid select
-    setIsRestaurantValid(true);
     onValidate(true);
   };
 
@@ -206,7 +204,6 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
 
 export function AddDishDialog({ onAddDish, open, onOpenChange , selectedCity }: AddDishDialogProps) {
 
-  const isOpen = open ?? false;
   const setIsOpen = onOpenChange ?? (() => {});
 
   const [isRestaurantValid, setIsRestaurantValid] = useState(false);  // <-- ADD THIS

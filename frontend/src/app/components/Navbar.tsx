@@ -1,12 +1,18 @@
-import { MapPin } from "lucide-react";
-import React, {useState, useEffect, useMemo, useRef} from "react";
+'use client'
+import { MapPin, Menu } from "lucide-react";
+import React, {useState, useEffect, useRef} from "react";
 import { FixedSizeList as List, ListChildComponentProps } from "react-window";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { AddDishDialog } from "./AddDishDialog";
 import { AddRestaurantDialog } from "./AddRestaurantDialog";
 import {Dish} from "@/app/components/DishCard";
 import {Restaurant} from "@/app/components/RestaurantCard";
-
+import Link from "next/link";
+import { AuthDialog } from "./AuthDialog";
+import { Button } from "./ui/button";
+import { useSession } from "@/app/contexts/SessionContext";
+import { fetchWithAuth } from "@/lib/api";
+import { usePathname } from 'next/navigation';
 
 interface NavbarProps {
   selectedCity: string;
@@ -18,13 +24,9 @@ interface NavbarProps {
 }
 
 export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, onAddDish, onAddRestaurant  }: NavbarProps) {
-    const [cities, setCities] = useState<string[]>([]);
     const [citySearch, setCitySearch] = useState("");
     const [filteredCities, setFilteredCities] = useState<string[]>([]);
-    const [cityPage, setCityPage] = useState(0);
     const [cityTotalPages, setCityTotalPages] = useState(1);
-    const [loading, setLoading] = useState(false);
-    const [hasMore, setHasMore] = useState(true); // indicates if more cities available
     const [highlightedIndex, setHighlightedIndex] = useState(0);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
     const PAGE_SIZE = 20; // or adjust per backend
@@ -35,7 +37,8 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
     const modalRef = useRef<HTMLDivElement>(null); // for outside click detection
     const listRef = useRef<List>(null);
 
-    const resultListRef = useRef<HTMLDivElement>(null);
+    const pathname = usePathname();
+    console.log(pathname)
 
     // keep updating window height
     const [listHeight, setListHeight] = useState(0);
@@ -80,9 +83,8 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
         if (!isCityModalOpen) return;
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
-            setLoading(true);
-            fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/city?name=${encodeURIComponent(citySearch)}&page=0&size=${PAGE_SIZE}`
+            fetchWithAuth(
+                `${process.env.NEXT_PUBLIC_API_URL}/foodapp/city?name=${encodeURIComponent(citySearch)}&page=0&size=${PAGE_SIZE}`
             )
                 .then(res => {
                     if (!res.ok) throw new Error("Failed to fetch cities");
@@ -91,19 +93,16 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
                 .then(data => {
                     setFilteredCities(data.data);
                     setCityTotalPages(data.totalPages);
-                    setHasMore(cityTotalPages > 1); // optional, can still track if wanted
                 })
                 .catch(() => {
                     setFilteredCities([]);
                     setCityTotalPages(1);
-                    setHasMore(false);
                 })
-                .finally(() => setLoading(false));
         }, 300);
         return () => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
         };
-    }, [citySearch, isCityModalOpen]);
+    }, [citySearch, isCityModalOpen, cityTotalPages]);
 
 
 
@@ -227,6 +226,26 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
     const [addRestaurantOpen, setAddRestaurantOpen] = useState(false);
 
 
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+    const { session, logout } = useSession();
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        };
+        if (isMenuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
+
+
     return (
         <>
             {/* Navbar */}
@@ -234,57 +253,131 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
                 <div className="mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         {/* Left: Brand - Always at extreme left */}
+
+                        {/*import Link from "next/link";*/}
+
                         <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center">
+                            <Link
+                                href="/"
+                                className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center cursor-pointer"
+                            >
                                 <span className="text-white text-xl">🍽️</span>
-                            </div>
+                            </Link>
                             <h1 className="text-2xl font-bold text-primary hidden sm:flex">FoodieDaddie</h1>
                         </div>
 
+
+
                         {/* Center: Tabs */}
-                        <div className="flex justify-center">
-                            <Tabs value={selectedTab} onValueChange={onTabChange}>
-                                <TabsList className="flex space-x-4">
-                                    <TabsTrigger value="dishes">Dishes</TabsTrigger>
-                                    <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
-                                </TabsList>
-                            </Tabs>
-                        </div>
+                        {pathname === '/' && (
+                            <div className="flex justify-center">
+                                <Tabs value={selectedTab} onValueChange={onTabChange}>
+                                    <TabsList className="flex space-x-4">
+                                        <TabsTrigger value="dishes">Dishes</TabsTrigger>
+                                        <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
+                                    </TabsList>
+                                </Tabs>
+                            </div>
+                        )}
 
                         {/* Right: Add buttons + Location - Always at extreme right */}
                         <div className="flex items-center space-x-2">
                             {/* Add Dish Button */}
-                            {selectedTab === "dishes" && selectedCity && (
-                                <div className="hidden sm:flex min-w-[140px] ml-auto flex justify-end">
-                                    <AddDishDialog
-                                        onAddDish={onAddDish}
-                                        selectedCity={selectedCity}
-                                        open={addDishOpen}
-                                        onOpenChange={setAddDishOpen}
-                                    />
+                            {pathname === '/' && (
+                                <div>
+                                {selectedTab === "dishes" && selectedCity && (
+                                    <div className="hidden sm:flex min-w-[140px] ml-auto flex justify-end">
+                                        <AddDishDialog
+                                            onAddDish={onAddDish}
+                                            selectedCity={selectedCity}
+                                            open={addDishOpen}
+                                            onOpenChange={setAddDishOpen}
+                                        />
+                                    </div>
+                                )}
+                                {selectedTab === "restaurants" && selectedCity && (
+                                    <div className="hidden sm:flex min-w-[140px] ml-auto flex justify-end">
+                                        <AddRestaurantDialog
+                                            onAddRestaurant={onAddRestaurant}
+                                            open={addRestaurantOpen}
+                                            onOpenChange={setAddRestaurantOpen}
+                                        />
+                                    </div>
+                                )}
                                 </div>
                             )}
-                            {selectedTab === "restaurants" && selectedCity && (
-                                <div className="hidden sm:flex min-w-[140px] ml-auto flex justify-end">
-                                    <AddRestaurantDialog
-                                        onAddRestaurant={onAddRestaurant}
-                                        open={addRestaurantOpen}
-                                        onOpenChange={setAddRestaurantOpen}
-                                    />
-                                </div>
+                            {pathname === '/' && (
+                            <div>
+                                <button
+                                    onClick={() => setIsCityModalOpen(true)}
+                                    className="flex items-center space-x-2 rounded px-3 py-1 bg-white"
+                                >
+                                    <MapPin className="h-4 w-4 text-foreground" />
+                                    <span>{selectedCity || "Select city"}</span>
+                                </button>
+                            </div>
                             )}
-                            <button
-                                onClick={() => setIsCityModalOpen(true)}
-                                className="flex items-center space-x-2 rounded px-3 py-1 bg-white"
-                            >
-                                <MapPin className="h-4 w-4 text-foreground" />
-                                <span>{selectedCity || "Select city"}</span>
-                            </button>
+
+                            <div className="relative" ref={menuRef}>
+                                <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(prev => !prev)}>
+                                    <Menu className="h-6 w-6" />
+                                </Button>
+                                {isMenuOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                        {pathname !== "/" && (
+                                            <Link
+                                                href="/"
+                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                onClick={() => setIsMenuOpen(false)}
+                                            >
+                                                Go to Home
+                                            </Link>
+                                        )}
+                                        {session.isLoggedIn ? (
+                                            <div>
+                                                {pathname !== "/favourites" && (
+                                                    <Link href="/favourites"
+                                                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                          onClick={() => setIsMenuOpen(false)}>
+
+                                                            Show Favourites
+
+                                                    </Link>
+                                                )}
+                                                <Link href="/submitted"
+                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                        See Submitted Requests
+                                                </Link>
+                                                <button
+                                                    onClick={() => {
+                                                        logout();
+                                                        setIsMenuOpen(false);
+                                                    }}
+                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                >
+                                                    Logout
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => {
+                                                    setIsAuthDialogOpen(true);
+                                                    setIsMenuOpen(false);
+                                                }}
+                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            >
+                                                Login / Sign Up
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
             </nav>
 
+            <AuthDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen} />
 
             {/* Overlay & Popup */}
             {isCityModalOpen && (
@@ -295,7 +388,7 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
                 >
                     {/* Popup box stops click propagation */}
                     <div
-                        className="bg-white rounded-lg shadow-lg w-full max-w-md p-4 flex flex-col h-[40vh]"
+                        className="bg-white rounded-lg shadow-lg w-full max-w-md p-4 flex flex-col h-[42vh]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex justify-between items-center mb-3">

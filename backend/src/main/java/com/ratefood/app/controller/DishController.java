@@ -41,14 +41,27 @@ public class DishController {
         this.dishRepository = dishRepository;
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @PostMapping("/dish")
     public ResponseEntity<DishResponseDTO> addDish(@RequestBody DishRequestDTO dishDTO) {
         DishResponseDTO newDish = dishService.createDish(dishDTO);
         return new ResponseEntity<>(newDish, HttpStatus.CREATED);
     }
 
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PostMapping("/dish/favourite/{dishId}")
+    public ResponseEntity<Boolean> markDishFavourite(@PathVariable long dishId, @RequestHeader("X-User-Id") Long userId) {
+        return new ResponseEntity<>(dishService.markDishFavourite(dishId, userId), HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PostMapping("/dish/unFavourite/{dishId}")
+    public ResponseEntity<Boolean> markDishUnFavourite(@PathVariable long dishId, @RequestHeader("X-User-Id") Long userId) {
+        return new ResponseEntity<>(dishService.unMarkDishFavourite(dishId, userId), HttpStatus.CREATED);
+    }
+
+
+    //    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/dish/{city}")
     public PageResponseDTO<List<DishResponseDTO>> getdishes(
             @PathVariable String city,
@@ -58,18 +71,42 @@ public class DishController {
             @RequestParam(required = false) Double currentLatitude,
             @RequestParam(required = false) Double currentLongitude,
             @RequestParam(required = false) Double maxDistanceKm,
+            @RequestParam(required = false) Boolean favourites,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @PageableDefault Pageable pageable
-    )
-
-    {
+            @PageableDefault Pageable pageable,
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "0") String userId
+    ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         log.info("User with roles: {} is getting dishes.", authentication.getAuthorities());
         PageResponseDTO<List<DishResponseDTO>> dishes = dishService.getDishes(name, city, minRating, maxRating,
-                currentLatitude, currentLongitude, maxDistanceKm, pageable);
+                currentLatitude, currentLongitude, maxDistanceKm, favourites, pageable, Long.parseLong(userId));
         return dishes;
 //        return new ResponseEntity<>(restaurants, HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @GetMapping("/dish/favourites/{city}")
+    public PageResponseDTO<List<DishResponseDTO>> getdishes(
+            @PathVariable String city,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @PageableDefault Pageable pageable,
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "0") String userId
+    ){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        log.info("User with roles: {} is getting dishes.", authentication.getAuthorities());
+        PageResponseDTO<List<DishResponseDTO>> dishes = dishService.getFavouriteDishes(city, pageable, Long.parseLong(userId));
+        return dishes;
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    @PostMapping("/updateDish")
+    public ResponseEntity<DishResponseDTO> updateDish(@RequestBody DishRequestDTO dishDTO) {
+        DishResponseDTO newDish = dishService.updateDish(dishDTO);
+        return new ResponseEntity<>(newDish, HttpStatus.CREATED);
     }
 
 }

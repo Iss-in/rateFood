@@ -1,41 +1,20 @@
-import { useState } from "react";
 import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
 import { Slider } from "./ui/slider";
-import { Search, X, MapPin } from "lucide-react";
-import { Button } from "./ui/button";
+import { Search, MapPin } from "lucide-react";
 
 interface FilterPanelProps {
   onSearchChange: (search: string) => void;
-  onTagsChange: (tags: string[]) => void;
   onRangeChange: (range: number) => void;
-  selectedTags: string[];
-  availableTags: string[];
   searchValue: string;
   locationRange: number;
 }
 
 export function FilterPanel({
   onSearchChange,
-  onTagsChange,
   onRangeChange,
-  selectedTags,
-  availableTags,
   searchValue,
   locationRange
 }: FilterPanelProps) {
-  const toggleTag = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      onTagsChange(selectedTags.filter(t => t !== tag));
-    } else {
-      onTagsChange([...selectedTags, tag]);
-    }
-  };
-
-  const removeTag = (tag: string) => {
-    console.log(tag);
-    onTagsChange(selectedTags.filter(t => t !== tag));
-  };
 
   return (
     <div className="bg-card p-6 rounded-lg shadow-sm border">

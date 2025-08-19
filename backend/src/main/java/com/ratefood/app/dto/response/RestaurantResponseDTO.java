@@ -1,21 +1,30 @@
-package com.ratefood.app.dto.request;
+package com.ratefood.app.dto.response;
 
 import com.ratefood.app.entity.City;
-import com.ratefood.app.entity.Dish;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Builder
 @Data
-public class RestaurantRequestDTO {
+@NoArgsConstructor
+@AllArgsConstructor
+public class RestaurantResponseDTO {
+
+    private long id;
 
     private String name;
 
@@ -23,20 +32,20 @@ public class RestaurantRequestDTO {
 
     private String description;
 
-    @Builder.Default
+    private float rating;
+
     private List<String> tags = new ArrayList<>();
 
     @Builder.Default
     private String image = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop";
 
-    @Builder.Default
     private BigDecimal latitude = BigDecimal.valueOf(28.6139);
 
-    @Builder.Default
     private BigDecimal longitude = BigDecimal.valueOf(28.6139);
 
-    private String city;
+    private City city;
 
-    private boolean isDraft;
+    @Builder.Default
+    Boolean isFavourite = false;
 
 }
