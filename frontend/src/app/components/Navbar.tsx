@@ -19,7 +19,7 @@ interface NavbarProps {
   onCityChange: (city: string) => void;
   selectedTab: string;
   onTabChange: (tab: string) => void;
-  onAddDish: (newDish: Omit<Dish, "id" | "rating">) => void;
+  onAddDish: (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
   onAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating">) => void;
 }
 

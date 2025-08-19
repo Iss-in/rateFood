@@ -14,6 +14,7 @@ export interface Dish {
   tags: string[];
   image: string;
   isFavourite?: boolean;
+  favoriteCount: number
 }
 
 interface DishCardProps {
@@ -24,6 +25,7 @@ interface DishCardProps {
 export function DishCard({ dish, onRemove }: DishCardProps) {
   const { session }: SessionContextType = useSession();
   const [isFavourite, setIsFavourite] = useState(dish.isFavourite ?? false);
+  const [favoriteCount, setFavoriteCount] = useState(dish.favoriteCount);
 
   const handlePencilClick = async () => {
     toast.error("clicked on pencil");
@@ -51,21 +53,34 @@ export function DishCard({ dish, onRemove }: DishCardProps) {
       });
 
       if (response.ok) {
-        setIsFavourite(!isFavourite);
         if (isFavourite) {
-          onRemove(); // Call to remove dish from parent's state on unfavourite
+          // Currently favourited → unfavourite
+          setIsFavourite(false);
+          setFavoriteCount((prev) => Math.max(0, prev - 1));
+          onRemove(); // remove from parent if needed
+          toast.success(t => (
+              <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+                Dish unfavourited successfully!
+              </div>
+          ));
+
+        } else {
+          // Currently not favourited → favourite
+          setIsFavourite(true);
+          setFavoriteCount((prev) => prev + 1);
+          toast.success(t => (
+              <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+                Dish Favourited successfully!
+              </div>
+          ));
+
         }
-        toast.success(
-          `Dish ${
-            isFavourite ? "unfavourited" : "favourited"
-          } successfully!`
-        );
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Failed to update favourite status.");
       }
     } catch (error) {
-      toast.error("An error occurred. Please try again.");
+      toast.error(`${error} error occurred. Please try again.`);
     }
   };
 
@@ -80,16 +95,20 @@ export function DishCard({ dish, onRemove }: DishCardProps) {
           />
           {session.isLoggedIn && (
               <>
-              <div
-                className="absolute top-2 right-2 bg-white rounded-full p-1.5 cursor-pointer"
-                onClick={handleFavouriteToggle}
-              >
-                <Heart
-                  className={`w-6 h-6 ${
-                    isFavourite ? "text-red-500 fill-current" : "text-gray-500"
-                  }`}
-                />
-              </div>
+                <div
+                    className="absolute top-2 right-2 bg-white rounded-full p-1.5 cursor-pointer flex flex-col items-center"
+                    onClick={handleFavouriteToggle}
+                >
+                  <Heart
+                      className={`w-6 h-6 ${
+                          isFavourite ? "text-red-500 fill-current" : "text-gray-500"
+                      }`}
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    {favoriteCount}
+                  </span>
+                </div>
+
 
               <div
                 className="absolute top-2 left-2 bg-white rounded-full p-1.5 cursor-pointer"

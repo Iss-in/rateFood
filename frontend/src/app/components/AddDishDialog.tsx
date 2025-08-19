@@ -13,7 +13,7 @@ import { Plus } from "lucide-react";
 import { Dish } from "./DishCard";
 import toast from 'react-hot-toast';
 interface AddDishDialogProps {
-  onAddDish: (dish: Omit<Dish, "id" | "rating">) => void;
+  onAddDish: (dish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
   selectedCity: string;
   open?: boolean; // add this
   onOpenChange?: (open: boolean) => void; // add

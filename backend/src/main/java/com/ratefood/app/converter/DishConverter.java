@@ -37,6 +37,7 @@ public class DishConverter {
                 .restaurant(dish.getRestaurant().getName())
                 .tags(dish.getTags())
                 .image(dish.getImage())
+                .favoriteCount(dish.getFavoriteCount())
                 .build();
         if(userId != 0) {
             List<FavouriteDish> favouriteDishes = favouriteDishRepository.getFavouriteDishesByUserId(userId);

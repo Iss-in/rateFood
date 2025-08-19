@@ -39,7 +39,7 @@ export function SubmittedRequestsPage() {
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground">You haven't submitted any dish requests yet.</p>
+          <p className="text-muted-foreground">You have not submitted any dish requests yet.</p>
         )}
       </section>
 
@@ -52,7 +52,7 @@ export function SubmittedRequestsPage() {
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground">You haven't submitted any restaurant requests yet.</p>
+          <p className="text-muted-foreground">You have not submitted any restaurant requests yet.</p>
         )}
       </section>
     </div>

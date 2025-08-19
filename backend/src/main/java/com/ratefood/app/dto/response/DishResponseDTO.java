@@ -24,4 +24,7 @@ public class DishResponseDTO {
 
     @Builder.Default
     private Boolean isFavourite = false;
+
+    @Builder.Default
+    private int favoriteCount = 0;
 }

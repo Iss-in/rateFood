@@ -43,8 +43,7 @@ export function FavouritesPage() {
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground">You haven't added any favourite dishes yet.</p>
-        )}
+            <p className="text-muted-foreground">You have not added any favourite dishes yet.</p>        )}
       </section>
 
       <section className="mt-12">
@@ -61,7 +60,7 @@ export function FavouritesPage() {
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground">You haven't added any favourite restaurants yet.</p>
+          <p className="text-muted-foreground">You have not added any favourite restaurants yet.</p>
         )}
       </section>
     </div>

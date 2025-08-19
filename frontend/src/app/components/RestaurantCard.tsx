@@ -71,7 +71,7 @@ export function RestaurantCard({
         toast.error(errorData.message || "Failed to update favourite status.");
       }
     } catch (error) {
-      toast.error("An error occurred. Please try again.");
+      toast.error(`${error} occurred. Please try again.`);
     }
   };
   return (

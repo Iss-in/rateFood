@@ -60,4 +60,7 @@ public class Dish {
     @Builder.Default
     private boolean isDraft = false;
 
+    @Column
+    @Builder.Default
+    private int favoriteCount = 0;
 }

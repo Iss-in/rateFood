@@ -137,6 +137,10 @@ public class DishService {
             return newFavourite;
         });
         favouriteDishRepository.save(favouriteDish);
+        Dish dish = dishRepository.findById(dishId).orElseThrow(() -> new EntityNotFoundException("Dish not found"));
+
+        dish.setFavoriteCount(dish.getFavoriteCount() + 1);
+        dishRepository.save(dish);
         return Boolean.TRUE;
     }
 
@@ -144,6 +148,10 @@ public class DishService {
         FavouriteDish favouriteDish = favouriteDishRepository.getFavouriteDishesByUserIdAndDishId(userId, dishId).
                 orElseThrow(() -> new EntityNotFoundException("Dish not found"));
         favouriteDishRepository.delete(favouriteDish);
+
+        Dish dish = dishRepository.findById(dishId).orElseThrow(() -> new EntityNotFoundException("Dish not found"));
+        dish.setFavoriteCount(Math.max(0, dish.getFavoriteCount() - 1));
+        dishRepository.save(dish);
         return Boolean.TRUE;
     }
 }

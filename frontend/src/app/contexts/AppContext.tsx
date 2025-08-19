@@ -8,7 +8,7 @@ interface AppContextType {
   setSelectedCity: (city: string) => void;
   selectedTab: string;
   setSelectedTab: (tab: string) => void;
-  handleAddDish: (newDish: Omit<Dish, "id" | "rating">) => void;
+  handleAddDish: (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
   setDishes: (dishes: Dish[]) => void;
   handleAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating">) => void;
   setRestaurants: (restaurants: Restaurant[]) => void;
@@ -23,10 +23,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
 
 
-  const handleAddDish = (newDish: Omit<Dish, "id" | "rating">) => {
+  const handleAddDish = (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">) => {
     const dish: Dish = {
       ...newDish,
       id: Date.now().toString(),
+      favoriteCount: 0,  // provide default value here
     };
     setDishes(prev => [dish, ...prev]);
   };

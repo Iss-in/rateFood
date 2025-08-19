@@ -133,7 +133,7 @@ export default function App() {
 
   if (!hasMounted) return null;
 
-  function AddDishDialogFloatingTrigger({ onAddDish, selectedCity }: { onAddDish: (newDish: Omit<Dish, "id" | "rating">)  => void, selectedCity: string }) {
+  function AddDishDialogFloatingTrigger({ onAddDish, selectedCity }: { onAddDish: (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">)  => void, selectedCity: string }) {
     const [open, setOpen] = useState(false);
     return (
         <>

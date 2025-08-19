@@ -19,6 +19,7 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
   if (response.status === 401) {  // Unauthorized - token likely expired
     toast.error('Session expired, please log in again.');
     localStorage.removeItem('jwt');
+    window.dispatchEvent(new Event("logout"));
   }
 
   return response;

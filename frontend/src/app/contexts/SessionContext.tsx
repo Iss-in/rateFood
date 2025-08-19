@@ -28,6 +28,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     if (token) {
       setSession({ isLoggedIn: true, token });
     }
+
+    const handleLogoutEvent = () => logout();
+    window.addEventListener("logout", handleLogoutEvent);
+
+    return () => {
+      window.removeEventListener("logout", handleLogoutEvent);
+    };
   }, []);
 
   const login = (token: string) => {

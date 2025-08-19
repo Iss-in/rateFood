@@ -1,14 +1,12 @@
 'use client'
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/app/contexts/SessionContext";
-import { Toaster } from 'react-hot-toast';
-import { Navbar } from "@/app/components/Navbar";
+
 import { AppProvider, useAppContext } from "@/app/contexts/AppContext";
-import { Dish } from "@/app/components/DishCard";
-import { Restaurant } from "@/app/components/RestaurantCard";
+
 import { NavbarWrapper } from "@/app/components/NavBarWrapper";
+import {CustomToaster} from "@/app/components/ui/custom-toaster";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -58,7 +56,7 @@ export default function RootLayout({
       >
         <SessionProvider>
           <AppProvider>
-            <Toaster position="top-right" />
+            <CustomToaster  />
             <NavbarWrapper />
             {children}
           </AppProvider>
