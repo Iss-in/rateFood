@@ -28,6 +28,35 @@ public interface DishRepository extends JpaRepository<Dish, Long> {
             @Param("currentLatitude") Double currentLatitude,
             @Param("currentLongitude") Double currentLongitude,
             @Param("maxDistanceKm") Double maxDistanceKm,
+            @Param("userId") Long userId,
+            Pageable pageable
+    );
+
+
+
+    @Query("""
+      SELECT d FROM Dish d
+      JOIN d.restaurant r
+      JOIN r.city c
+      WHERE (:name IS NULL OR :name = '' OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
+        AND LOWER(c.name) = LOWER(:city)
+        AND NOT EXISTS (
+            SELECT 1 FROM DraftDish dd
+            WHERE dd.userId = :userId
+              AND dd.dish IS NOT NULL
+              AND dd.dish.id = d.id
+
+        )
+    """)
+    Page<Dish> getNonDraftDishes(
+            @Param("name") String name,
+            @Param("city") String city,
+            @Param("minRating") Float minRating,
+            @Param("maxRating") Float maxRating,
+            @Param("currentLatitude") Double currentLatitude,
+            @Param("currentLongitude") Double currentLongitude,
+            @Param("maxDistanceKm") Double maxDistanceKm,
+            @Param("userId") Long userId,
             Pageable pageable
     );
 

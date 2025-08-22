@@ -4,8 +4,10 @@ import com.ratefood.app.dto.request.DishRequestDTO;
 import com.ratefood.app.dto.response.DishResponseDTO;
 import com.ratefood.app.dto.response.PageResponseDTO;
 import com.ratefood.app.entity.Dish;
+import com.ratefood.app.entity.DraftDish;
 import com.ratefood.app.entity.Restaurant;
 import com.ratefood.app.repository.DishRepository;
+import com.ratefood.app.repository.DraftDishRepository;
 import com.ratefood.app.repository.RestaurantRepository;
 import com.ratefood.app.service.DishService;
 import jakarta.persistence.EntityNotFoundException;
@@ -36,6 +38,9 @@ public class DishController {
 
     @Autowired
     private DishService dishService;
+
+    @Autowired
+    private DraftDishRepository draftDishRepository;
 
     public DishController(DishRepository dishRepository) {
         this.dishRepository = dishRepository;
@@ -119,6 +124,7 @@ public class DishController {
         return new ResponseEntity<>(true, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/dish/draft")
     public ResponseEntity<List<DishResponseDTO>> getDraftDishes(
             @RequestHeader(value = "X-User-Id", required = false, defaultValue = "0") String userId
@@ -131,5 +137,38 @@ public class DishController {
     }
 
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @DeleteMapping("/dish/draft/{id}")
+    public ResponseEntity deleteDraftDish(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "0") String userId
+    ){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        DraftDish dish;
+        if(isAdmin)
+            dish = draftDishRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Draft dish not found"));
+        else
+            dish = draftDishRepository.findByIdAndUserId(id, Long.parseLong(userId)).orElseThrow(() -> new EntityNotFoundException("Draft dish not found"));
+
+        draftDishRepository.delete(dish);
+        return new ResponseEntity<>(true, HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/dish/draft/{id}")
+    public ResponseEntity approveDraftDish(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "0") String userId
+    ){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        log.info("Authenticated user authorities: {}", authentication.getAuthorities());
+        log.info("Authenticated user authorities: {}");
+
+        dishService.approveDraftDish(id, Long.parseLong(userId));
+        return new ResponseEntity<>(false, HttpStatus.CREATED);
+    }
 
 }

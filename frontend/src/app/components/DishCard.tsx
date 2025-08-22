@@ -40,16 +40,70 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // Demo functions for the new buttons
-  const handleApprove = () => {
-    console.log("Approve button clicked for dish:", dish.name);
-    setSubmittedDishes(prevDishes => prevDishes.filter(d => d.id !== dish.id));
-    toast.success("Dish approved!");
-  };
+  // const handleApprove = () => {
+  //   console.log("Approve button clicked for dish:", dish.name);
+  //   setSubmittedDishes(prevDishes => prevDishes.filter(d => d.id !== dish.id));
+  //   toast.success("Dish approved!");
+  // };
 
-  const handleReject = () => {
+  const handleApprove = async () => {
+  console.log("Approve button clicked for dish:", dish.id);
+
+  try {
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/dish/draft/${dish.id}`;
+    const response = await fetch(url, {
+      method: "PUT",  // approve = PUT
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.token}`, // if auth required
+      },
+      // body: JSON.stringify({ approved: true }), // if backend expects body
+    });
+
+    if (response.ok) {
+      // Remove from local state
+      setSubmittedDishes(prevDishes =>
+        prevDishes.filter(d => d.id !== dish.id)
+      );
+      toast.success("Dish approved successfully!");
+    } else {
+      const errorData = await response.json();
+      toast.error(errorData.message || "Failed to approve dish.");
+    }
+  } catch (error) {
+    console.error("Error approving dish:", error);
+    toast.error("Something went wrong while approving dish.");
+  }
+};
+
+
+  const handleReject = async () => {
     console.log("Reject button clicked for dish:", dish.name);
-    setSubmittedDishes(prevDishes => prevDishes.filter(d => d.id !== dish.id));
-    toast.error("Dish rejected!");
+
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/dish/draft/${dish.id}`;
+      const response = await fetch(url, {
+        method: "DELETE",   // usually reject = delete
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.token}`, // if auth required
+        },
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setSubmittedDishes(prevDishes =>
+          prevDishes.filter(d => d.id !== dish.id)
+        );
+        toast.success("Dish rejected successfully!");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to reject dish.");
+      }
+    } catch (error) {
+      console.error("Error rejecting dish:", error);
+      toast.error("Something went wrong while rejecting dish.");
+    }
   };
 
   const onDelete = async () => {

@@ -161,8 +161,17 @@ public class DishService {
             Pageable pageable,
             Long userId
     ) {
-        Page<Dish> dishes = dishRepository.getDishes(name, city, minRating, maxRating, currentLatitude,
-                currentLongitude, maxDistanceKm, pageable);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+        Page<Dish> dishes;
+        if(isAdmin)
+            dishes = dishRepository.getDishes(name, city, minRating, maxRating, currentLatitude,
+                    currentLongitude, maxDistanceKm, userId, pageable);
+        else
+            dishes = dishRepository.getNonDraftDishes(name, city, minRating, maxRating, currentLatitude,
+                    currentLongitude, maxDistanceKm, userId, pageable);
 
         PageResponseDTO<List<DishResponseDTO>> dto = new PageResponseDTO<>();
         dto.setData(dishes.getContent().stream().map(dish -> {
@@ -229,7 +238,16 @@ public class DishService {
     }
 
     public List<DishResponseDTO> getDraftDishes(Long userId){
-        List<DraftDish> draftDishes = draftDishRepository.findByUserId(userId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        List<DraftDish> draftDishes;
+        if(isAdmin)
+            draftDishes =  draftDishRepository.findAll();
+        else
+            draftDishes = draftDishRepository.findByUserId(userId);
+
         List<DishResponseDTO> dto = draftDishes.stream().map(draftDish -> {
             try {
                 return dishConverter.
@@ -239,5 +257,33 @@ public class DishService {
             }
         }).collect(Collectors.toList());
         return dto;
+    }
+
+    public Boolean approveDraftDish(Long id, Long userId){
+        DraftDish draftDish = draftDishRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Draft dish not found"));
+//        if(draftDish.getUserId() != userId){
+//            throw new RuntimeException("You can only approve your own draft dishes");
+//        }
+        if(draftDish.getDish() == null) {
+            Dish dish = Dish.builder()
+                    .name(draftDish.getName())
+                    .restaurant(draftDish.getRestaurant())
+                    .tags(draftDish.getTags())
+                    .description(draftDish.getDescription())
+                    .image(draftDish.getImage())
+                    .build();
+            dishRepository.save(dish);
+        }
+        else{
+            Dish dish = draftDish.getDish();
+            dish.setName(draftDish.getName());
+            dish.setTags(draftDish.getTags());
+            dish.setDescription(draftDish.getDescription());
+            dish.setImage(draftDish.getImage());
+            dish.setRestaurant(draftDish.getRestaurant());
+            dishRepository.save(dish);
+        }
+        draftDishRepository.delete(draftDish);
+        return Boolean.TRUE;
     }
 }

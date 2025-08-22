@@ -1,21 +1,22 @@
 package com.ratefood.app.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-
-@Builder
+@Table(name = "draft_restaurant")
 @Data
+@Builder
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "restaurant")
-public class Restaurant {
-
+public class DraftRestaurant {
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,5 +56,12 @@ public class Restaurant {
     @ManyToOne
     @JoinColumn(name = "city_id", nullable = false)
     private City city;
+
+    @Column(name="user_id")
+    private Long userId;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "restaurant_id", nullable = true)
+    private Restaurant restaurant ;
 
 }

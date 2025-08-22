@@ -36,11 +36,12 @@ public class DishConverter {
                 .name(dish.getName())
                 .id(dish.getId())
                 .description(dish.getDescription())
-                .restaurant(dish.getRestaurant().getName())
                 .tags(dish.getTags())
 //                .image(dish.getImage())
                 .image(imageService.getPresignedUrl(ImageType.DRAFT_DISH + "/" + String.valueOf(dish.getId()) , 100))
                 .build();
+        if(dish.getRestaurant() != null)
+            responseDto.setRestaurant(dish.getRestaurant().getName());
         return responseDto;
     }
 
