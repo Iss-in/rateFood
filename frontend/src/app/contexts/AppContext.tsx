@@ -18,7 +18,9 @@ interface AppContextType {
   
   // Restaurants state and actions
   restaurants: Restaurant[];
-  setRestaurants: (restaurants: Restaurant[]) => void;
+  setRestaurants: React.Dispatch<React.SetStateAction<Restaurant[]>>;
+
+  // setRestaurants: (restaurants: Restaurant[]) => void;
   handleAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating">) => void;
   
   // Favourites state and actions
@@ -50,9 +52,9 @@ interface AppContextType {
   
   // Pagination states
   dishesCurrentPage: number;
-  setDishesCurrentPage: (page: number) => void;
+  setDishesCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   restaurantsCurrentPage: number;
-  setRestaurantsCurrentPage: (page: number) => void;
+  setRestaurantsCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   hasMoreDishes: boolean;
   setHasMoreDishes: (hasMore: boolean) => void;
   hasMoreRestaurants: boolean;
@@ -85,7 +87,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   
   // Pagination states
   const [dishesCurrentPage, setDishesCurrentPage] = useState(0);
-  const [restaurantsCurrentPage, setRestaurantsCurrentPage] = useState(0);
+  const [restaurantsCurrentPage, setRestaurantsCurrentPage] = useState<number>(0);
   const [hasMoreDishes, setHasMoreDishes] = useState(false);
   const [hasMoreRestaurants, setHasMoreRestaurants] = useState(true);
 

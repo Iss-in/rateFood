@@ -12,7 +12,7 @@ export function SubmittedRequestsPage() {
     fetchSubmittedRequests,
     loadingSubmittedRequests
   } = useAppContext();
-  
+
   const { isSubmittedPage, isReady } = useSafeRouter();
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export function SubmittedRequestsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold mb-8">Your Pending Submitted Requests</h1>
-      
+
       {/* <section>
         <h2 className="text-2xl font-semibold mb-4">Submitted Dishes</h2>
         {submittedDishes && submittedDishes.length > 0 ? (
@@ -59,12 +59,15 @@ export function SubmittedRequestsPage() {
           >
             {submittedDishes.map((dish) => (
               <div key={dish.id} className="flex-shrink-0" style={{ width: 200 /* desired card width */ }}>
-              <DishCard 
-                key={dish.id} 
-                dish={dish} 
-                onRemove={() => {}} 
-                isSubmittedPage={isSubmittedPage} 
-              />
+                <DishCard
+                  key={dish.id}
+                  dish={dish}
+                  onRemove={() => { }}
+                  isSubmittedPage={isSubmittedPage}
+                  onFavouriteRemove={() => { }}
+                  selectedCity=""
+                  showMenu={false}
+                />
               </div>
             ))}
           </div>
@@ -78,11 +81,12 @@ export function SubmittedRequestsPage() {
         {submittedRestaurants && submittedRestaurants.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
             {submittedRestaurants.map(restaurant => (
-              <RestaurantCard 
-                key={restaurant.id} 
-                restaurant={restaurant} 
-                onRatingChange={() => {}} 
-                onRemove={() => {}} 
+              <RestaurantCard
+                key={restaurant.id}
+                restaurant={restaurant}
+                onFavouriteRemove={() => { }}
+                // onRatingChange={(restaurant.id) => { }}
+                onRemove={() => { }}
               />
             ))}
           </div>

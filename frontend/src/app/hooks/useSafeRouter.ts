@@ -4,13 +4,16 @@ import { useState, useEffect, useRef } from 'react';
 export function useSafeRouter() {
   const [currentPath, setCurrentPath] = useState('');
   const [isReady, setIsReady] = useState(false);
-  const patchedHistory = useRef(false);
+
+  const patchedHistory = useRef<{
+    originalPushState: typeof window.history.pushState;
+    originalReplaceState: typeof window.history.replaceState;
+  } | false>(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const updatePath = () => {
-      // Schedule state update asynchronously to avoid React hook warnings
       Promise.resolve().then(() => {
         setCurrentPath(window.location.pathname);
         setIsReady(true);

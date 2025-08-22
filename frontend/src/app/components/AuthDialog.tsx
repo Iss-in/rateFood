@@ -60,7 +60,7 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean, onOpenChange
         body: JSON.stringify(values),
       });
 
-      const data: AuthResponse = await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || 'Something went wrong');

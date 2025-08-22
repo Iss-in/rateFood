@@ -56,6 +56,7 @@ export function FavouritesPage() {
                   onFavouriteRemove={() => removeFavouriteDish(dish.id)}
                   onRemove={() => {}}
                   showMenu={false}
+                  selectedCity=""
                 />
               </div>
             ))}

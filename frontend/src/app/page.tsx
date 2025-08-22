@@ -81,13 +81,14 @@ export default function App() {
         if (!res.ok) throw new Error(`Failed to fetch restaurants for ${selectedCity}?page=${restaurantsCurrentPage}`);
         return res.json();
       })
-      .then(data => {
-        setRestaurants(prev => {
-          const newRestaurants = restaurantsCurrentPage === 0 ? data.data : [...prev, ...data.data];
-          return newRestaurants;
-        });
+    .then(data => {
+      setRestaurants(prev => {
+        const newRestaurants = restaurantsCurrentPage === 0 ? data.data : [...prev, ...data.data];
+        return newRestaurants;
+      });
         setHasMoreRestaurants(restaurantsCurrentPage + 1 < data.totalPages);
       })
+
       .catch(err => console.error(err))
       .finally(() => setLoadingRestaurants(false));
   }, [selectedCity, restaurantsCurrentPage, setRestaurants, setLoadingRestaurants, setHasMoreRestaurants]);
@@ -230,6 +231,7 @@ export default function App() {
                       onRemove={() => handleRemoveDish(dish.id)}
                       onFavouriteRemove={() => {} }
                       showMenu={session.token ? true: false}
+                      selectedCity={selectedCity}
                     />
                   ))}
                 </div>
@@ -263,7 +265,7 @@ export default function App() {
                     <RestaurantCard
                       key={restaurant.id}
                       restaurant={restaurant}
-                      onRatingChange={handleRestaurantRating}
+                      // onRatingChange={handleRestaurantRating}
                       onRemove={() => handleRemoveRestaurant(restaurant.id)}
                       onFavouriteRemove={() => {} }
                     />

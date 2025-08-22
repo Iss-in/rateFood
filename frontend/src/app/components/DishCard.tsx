@@ -27,7 +27,7 @@ interface DishCardProps {
   onFavouriteRemove: () => void;
   onUpdate?: (updatedDish: Dish) => void;
   selectedCity: string;
-  showMenu: Boolean;
+  showMenu: boolean;
   isSubmittedPage?: boolean; // Add this as an optional prop
 }
 
