@@ -61,7 +61,7 @@ export function FilterPanel({
         {/*</div>*/}
 
         {/* Location Range */}
-        <div>
+        {/* <div>
           <div className="flex items-center gap-2 mb-3">
             <MapPin className="h-4 w-4" />
             <h3>Distance: {locationRange} kilometers</h3>
@@ -74,7 +74,7 @@ export function FilterPanel({
             step={1}
             className="w-full"
           />
-        </div>
+        </div> */}
       </div>
     </div>
   );

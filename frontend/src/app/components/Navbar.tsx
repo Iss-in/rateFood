@@ -323,7 +323,7 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
                                     <Menu className="h-6 w-6" />
                                 </Button>
                                 {isMenuOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                    <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-xl  ring-0 ring-green ring-opacity-0 focus:outline-none z-50">
                                         {pathname !== "/" && (
                                             <Link
                                                 href="/"
@@ -348,15 +348,27 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
                                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                         See Submitted Requests
                                                 </Link>
+                                                <div className="relative w-full">
                                                 <button
                                                     onClick={() => {
-                                                        logout();
-                                                        setIsMenuOpen(false);
+                                                    logout();
+                                                    setIsMenuOpen(false);
                                                     }}
                                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                 >
                                                     Logout
                                                 </button>
+                                                
+                                                <div
+                                                className="absolute top-0 left-4 right-4"
+                                                style={{
+                                                    height: '1px',
+                                                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                                                    boxShadow: 'none',
+                                                }}
+                                                /></div>
+
+
                                             </div>
                                         ) : (
                                             <button

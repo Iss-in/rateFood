@@ -12,17 +12,42 @@ export function ImageWithFallback(props: React.ComponentProps<typeof Image>) {
   }
 
   const { src, alt, style, className, ...rest } = props
-
-  return didError ? (
-    <div
-      className={`inline-block bg-gray-100 text-center align-middle ${className ?? ''}`}
-      style={style}
-    >
-      <div className="flex items-center justify-center w-full h-full">
-        <Image src={ERROR_IMG_SRC} alt="Error loading image" {...rest} data-original-url={src} fill />
+return didError ? (
+  <div
+    className={`inline-block bg-gray-100 text-center align-middle ${className ?? ''}`}
+    style={style}
+  >
+    <div className="flex items-center justify-center w-full h-full">
+      <div
+        tabIndex={0}
+        className="focus:outline-none focus:scale-105 transition-transform duration-300 inline-block"
+        style={{ width: '100%', height: '100%', position: 'relative' }}
+      >
+        <Image
+          src={ERROR_IMG_SRC}
+          alt="Error loading image"
+          {...rest}
+          data-original-url={src}
+          fill
+        />
       </div>
     </div>
-  ) : (
-    <Image src={src || ''} alt={alt || ''} className={className} style={style} {...rest} onError={handleError} fill />
-  )
+  </div>
+) : (
+  <div
+    tabIndex={0}
+    className="focus:outline-none focus:scale-105 transition-transform duration-300 inline-block"
+    style={{ width: '100%', height: '100%', position: 'relative', ...style }}
+  >
+    <Image
+      src={src || ''}
+      alt={alt || ''}
+      className={className}
+      {...rest}
+      onError={handleError}
+      fill
+    />
+  </div>
+);
+
 }
