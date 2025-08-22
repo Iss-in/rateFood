@@ -1,22 +1,17 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "media-assets.swiggy.com",
-        port: "",
-        pathname: "/swiggy/image/upload/**",
-      },
-      {
-        protocol: "https",
-        hostname: "**",
-        port: "",
-        pathname: "/**",
-      },
+      // {
+      //   protocol: 'http',
+      //   hostname: 'minio',
+      //   port: '9001',
+      //   pathname: '/**',
+      // },
     ],
+    unoptimized: true,
   },
-};
+}
 
-export default nextConfig;
+module.exports = nextConfig

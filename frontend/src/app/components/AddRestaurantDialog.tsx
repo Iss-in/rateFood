@@ -47,6 +47,7 @@ export function AddRestaurantDialog({ onAddRestaurant , open, onOpenChange  }: A
         // phone: formData.phone || "(555) 123-4567",
         // priceRange: formData.priceRange || "$$"
       });
+      
       setFormData({
         name: "",
         cuisine: "",

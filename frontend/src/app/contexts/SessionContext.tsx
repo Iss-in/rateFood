@@ -1,17 +1,16 @@
-
 'use client';
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import toast from "react-hot-toast";
 
 interface Session {
   isLoggedIn: boolean;
   token: string | null;
+  roles: string[] | null;
 }
 
 export interface SessionContextType {
   session: Session;
-  login: (token: string) => void;
+  login: (token: string, roles: string[]) => void;
   logout: () => void;
 }
 
@@ -21,12 +20,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session>({
     isLoggedIn: false,
     token: null,
+    roles: null,
   });
 
   useEffect(() => {
     const token = localStorage.getItem('jwt');
+    const rolesStr = localStorage.getItem('userRoles');
+    
     if (token) {
-      setSession({ isLoggedIn: true, token });
+      const roles = rolesStr ? JSON.parse(rolesStr) : null;
+      setSession({ isLoggedIn: true, token, roles });
     }
 
     const handleLogoutEvent = () => logout();
@@ -37,16 +40,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = (token: string) => {
+  const login = (token: string, roles: string[]) => {
     localStorage.setItem('jwt', token);
-    setSession({ isLoggedIn: true, token });
+    localStorage.setItem('userRoles', JSON.stringify(roles));
+    setSession({ isLoggedIn: true, token, roles });
   };
 
   const logout = () => {
     localStorage.removeItem('jwt');
-    setSession({ isLoggedIn: false, token: null });
+    localStorage.removeItem('userRoles');
+    setSession({ isLoggedIn: false, token: null, roles: null });
     window.location.href = "/";
-    // window.location.reload();
     toast.success('Log out successful!');
   };
 

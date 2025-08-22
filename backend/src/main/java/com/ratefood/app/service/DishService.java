@@ -5,9 +5,12 @@ import com.ratefood.app.dto.request.DishRequestDTO;
 import com.ratefood.app.dto.response.DishResponseDTO;
 import com.ratefood.app.dto.response.PageResponseDTO;
 import com.ratefood.app.entity.Dish;
+import com.ratefood.app.entity.DraftDish;
 import com.ratefood.app.entity.FavouriteDish;
 import com.ratefood.app.entity.Restaurant;
+import com.ratefood.app.enums.ImageType;
 import com.ratefood.app.repository.DishRepository;
+import com.ratefood.app.repository.DraftDishRepository;
 import com.ratefood.app.repository.FavouriteDishRepository;
 import com.ratefood.app.repository.RestaurantRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -38,53 +41,111 @@ public class DishService {
     @Autowired
     private FavouriteDishRepository favouriteDishRepository;
 
-    public DishResponseDTO createDish(DishRequestDTO dto){
+    @Autowired
+    private DraftDishRepository draftDishRepository;
+
+    @Autowired
+    private ImageService imageService;
+
+    public DishResponseDTO createDish(DishRequestDTO dto, Long userId) throws Exception {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
-
-        dto.setDraft(isAdmin);  // true if admin, false if not
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
         String restaurantName = dto.getRestaurant();
         Restaurant restaurant =  restaurantRepository.findByName(restaurantName).orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
-        Dish dishEntity = Dish.builder()
-                .name(dto.getName())
-                .restaurant(restaurant)
-                .tags(dto.getTags())
-                .description(dto.getDescription())
-                .build();
-        if(dto.getImage() != null)
-            dishEntity.setImage(dto.getImage());
+        if(isAdmin) {
+            Dish dishEntity = Dish.builder()
+                    .name(dto.getName())
+                    .restaurant(restaurant)
+                    .tags(dto.getTags())
+                    .description(dto.getDescription())
+                    .build();
+            Dish dishCreated = dishRepository.save(dishEntity);
 
-        Dish dishCreated  = dishRepository.save(dishEntity);
-        DishResponseDTO responseDto = dishConverter.fromDishtoDishResponseDTO(dishCreated);
-        return responseDto;
+            if (dto.getImage() != null && !dto.getImage().contains("foodapp/" + ImageType.DISH)) {
+                //TODO: can compress image to a size ?
+                String key = ImageType.DISH + "/" + String.valueOf(dishCreated.getId());
+                imageService.uploadImage(dto.getImage(), key);
+                String imageLink = imageService.getPresignedUrl(key, 10);
+                dishCreated.setImage(imageLink);
+            }
+
+            Dish dishCreatedWithImage = dishRepository.save(dishCreated);
+            DishResponseDTO responseDto = dishConverter.fromDishtoDishResponseDTO(dishCreatedWithImage);
+            return responseDto;
+        }
+        else{
+            DraftDish dishEntity = DraftDish.builder()
+                    .name(dto.getName())
+                    .restaurant(restaurant)
+                    .tags(dto.getTags())
+                    .description(dto.getDescription())
+                    .userId(userId)
+                    .build();
+            if (dto.getImage() != null && !dto.getImage().contains("foodapp/" + ImageType.DRAFT_DISH)) {
+                //TODO: can compress image to a size ?
+                String key = ImageType.DRAFT_DISH + "/" + String.valueOf(dto.getId());
+                imageService.uploadImage(dto.getImage(), key);
+                String imageLink = imageService.getPresignedUrl(key, 10);
+                dishEntity.setImage(imageLink);
+            }
+            DraftDish dishCreated  = draftDishRepository.save(dishEntity);
+            DishResponseDTO responseDto = dishConverter.fromDraftDishtoDishResponseDTO(dishCreated);
+            return responseDto;
+        }
     }
 
-    public DishResponseDTO updateDish(DishRequestDTO dto){
+    public DishResponseDTO updateDish(DishRequestDTO dto, Long userId) throws Exception {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
+        Dish dish = dishRepository.getReferenceById(dto.getId());
         String restaurantName = dto.getRestaurant();
         Restaurant restaurant =  restaurantRepository.findByName(restaurantName).orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
-
-        Dish dishEntity = Dish.builder()
-                .id(dto.getId())
-                .name(dto.getName())
-                .restaurant(restaurant)
-                .tags(dto.getTags())
-                .description(dto.getDescription())
-                .build();
-        if(dto.getImage() != null)
-            dishEntity.setImage(dto.getImage());
-
-        Dish dishCreated  = dishRepository.save(dishEntity);
-        DishResponseDTO responseDto = dishConverter.fromDishtoDishResponseDTO(dishCreated);
-        return responseDto;
+        if(isAdmin) {
+            Dish dishEntity = Dish.builder()
+                    .id(dto.getId())
+                    .name(dto.getName())
+                    .restaurant(restaurant)
+                    .tags(dto.getTags())
+                    .description(dto.getDescription())
+                    .build();
+            if (dto.getImage() != null && !dto.getImage().contains("foodapp/" + ImageType.DISH)) {
+                //TODO: can compress image to a size ?
+                String key = ImageType.DISH + "/" + String.valueOf(dto.getId());
+                imageService.uploadImage(dto.getImage(), key);
+                String imageLink = imageService.getPresignedUrl(key, 10);
+                dishEntity.setImage(imageLink);
+            }
+            Dish dishCreated  = dishRepository.save(dishEntity);
+            DishResponseDTO responseDto = dishConverter.fromDishtoDishResponseDTO(dishCreated);
+            return responseDto;
+        }
+        else{
+            DraftDish dishEntity = DraftDish.builder()
+                    .name(dto.getName())
+                    .restaurant(restaurant)
+                    .tags(dto.getTags())
+                    .description(dto.getDescription())
+                    .userId(userId)
+                    .dish(dish)
+                    .build();
+            if (dto.getImage() != null && !dto.getImage().contains("foodapp/" + ImageType.DRAFT_DISH)) {
+                //TODO: can compress image to a size ?
+                String key = ImageType.DRAFT_DISH + "/" + String.valueOf(dto.getId());
+                imageService.uploadImage(dto.getImage(), key);
+                String imageLink = imageService.getPresignedUrl(key, 10);
+                dishEntity.setImage(imageLink);
+            }
+            DraftDish dishCreated  = draftDishRepository.save(dishEntity);
+            DishResponseDTO responseDto = dishConverter.fromDraftDishtoDishResponseDTO(dishCreated);
+            return responseDto;
+        }
     }
 
 
@@ -104,7 +165,13 @@ public class DishService {
                 currentLongitude, maxDistanceKm, pageable);
 
         PageResponseDTO<List<DishResponseDTO>> dto = new PageResponseDTO<>();
-        dto.setData(dishes.getContent().stream().map(dish -> dishConverter.fromDishtoDishResponseDTO(dish, userId)).collect(Collectors.toList()));
+        dto.setData(dishes.getContent().stream().map(dish -> {
+            try {
+                return dishConverter.fromDishtoDishResponseDTO(dish, userId);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList()));
         dto.setTotalPages(dishes.getTotalPages());
         dto.setTotalElements((int) dishes.getTotalElements());
         dto.setCurrentPage(dishes.getNumber());
@@ -120,7 +187,13 @@ public class DishService {
         Page<Dish> dishes = dishRepository.findAll( pageable);
 
         PageResponseDTO<List<DishResponseDTO>> dto = new PageResponseDTO<>();
-        List<DishResponseDTO> dtoList = dishes.getContent().stream().map(dish -> dishConverter.fromDishtoDishResponseDTO(dish, userId)).collect(Collectors.toList());
+        List<DishResponseDTO> dtoList = dishes.getContent().stream().map(dish -> {
+            try {
+                return dishConverter.fromDishtoDishResponseDTO(dish, userId);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList());
         dto.setData(dtoList.stream().filter(dish -> dish.getIsFavourite() != null && dish.getIsFavourite()).collect(Collectors.toList()));
         dto.setTotalPages(dishes.getTotalPages());
         dto.setTotalElements((int) dishes.getTotalElements());
@@ -153,5 +226,18 @@ public class DishService {
         dish.setFavoriteCount(Math.max(0, dish.getFavoriteCount() - 1));
         dishRepository.save(dish);
         return Boolean.TRUE;
+    }
+
+    public List<DishResponseDTO> getDraftDishes(Long userId){
+        List<DraftDish> draftDishes = draftDishRepository.findByUserId(userId);
+        List<DishResponseDTO> dto = draftDishes.stream().map(draftDish -> {
+            try {
+                return dishConverter.
+                        fromDraftDishtoDishResponseDTO(draftDish);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList());
+        return dto;
     }
 }

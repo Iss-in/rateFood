@@ -6,13 +6,15 @@ import { useSession } from "../contexts/SessionContext";
 import { Heart } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { fetchWithAuth } from "@/lib/api";
+import ActionMenu from "./ActionMenu";
 
 export interface Restaurant {
   id: string;
   name: string;
   cuisine: string;
   description: string;
-  rating: number;
+  // rating: number;
   tags: string[];
   image: string;
   isFavourite?: boolean;
@@ -25,19 +27,56 @@ export interface Restaurant {
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
-  onRatingChange: (restaurantId: string, rating: number) => void;
+  // onRatingChange: (restaurantId: string, rating: number) => void;
   onRemove: () => void;
+  onFavouriteRemove: () => void;
 
 }
 
 export function RestaurantCard({
   restaurant,
-  onRatingChange,
-  onRemove
+  // onRatingChange,
+  onRemove,
+  onFavouriteRemove,
 }: RestaurantCardProps) {
   const { session } = useSession();
   // const [liked, setLiked] = useState(false);
   const [isFavourite, setIsFavourite] = useState(restaurant.isFavourite ?? false);
+
+
+    const onDelete = async () => {
+    if (!session.token) {
+      toast.error("You must be logged in to delete a Restaurant.");
+      return;
+    }
+
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/restaurant/${restaurant.id}`;
+
+    try {
+      const response = await fetchWithAuth(url, {
+        method: "DELETE",
+      });
+      
+      if (response.ok) {
+        toast.success(t => (
+            <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+              Restaurant deleted successfully!
+            </div>
+        ));
+        onRemove();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to delete the restaurant");
+      }
+    } catch (error) {
+      toast.error(`${error} error occurred. Please try again.`);
+    }
+  }
+
+  const handlePencilClick = () => {
+    console.log("edit clicked")
+  }
+
 
   const handleFavouriteToggle = async () => {
     if (!session.token) {
@@ -49,17 +88,17 @@ export function RestaurantCard({
     const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/restaurant/${endpoint}/${restaurant.id}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await fetchWithAuth(url, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.token}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${session.token}`,
+        // },
       });
 
       if (response.ok) {
         setIsFavourite(!isFavourite);
         if (isFavourite) {
-          onRemove(); // Call to remove dish from parent's state on unfavourite
+          onFavouriteRemove(); // Call to remove dish from parent's state on unfavourite
         }
         toast.success(
             `Restaurant ${
@@ -75,9 +114,9 @@ export function RestaurantCard({
     }
   };
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow gap-0">
+    <Card className="overflow-hidden shadow hover:shadow-md transition-shadow gap-0">
       <CardHeader className="p-0">
-        <div className="relative w-full h-48">
+        <div className="relative w-full h-55">
           <ImageWithFallback
             src={restaurant.image}
             alt={restaurant.name}
@@ -99,11 +138,18 @@ export function RestaurantCard({
       </CardHeader>
       <CardContent className="px-4">
         <div className="space-y-1">
-          <div>
-            <h3 className="font-semibold">{restaurant.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              {restaurant.cuisine}
-            </p>
+          <div className="flex justify-between items-start space-y-0">
+            <div>
+              <h3 className="font-semibold">{restaurant.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {restaurant.cuisine}
+              </p>
+            </div>
+
+            <div>
+              <ActionMenu onEdit={handlePencilClick} onDelete={onDelete} />
+              {/* <ActionMenu onDelete={onDelete}  /> */}
+            </div>
           </div>
 
           <p className="text-sm text-gray-600 line-clamp-2">
@@ -140,14 +186,14 @@ export function RestaurantCard({
             ))}
           </div>
 
-          <div className="pt-2">
+          {/* <div className="pt-2">
             <RatingComponent
               currentRating={restaurant.rating}
               onRatingChange={(rating) =>
                 onRatingChange(restaurant.id, rating)
               }
             />
-          </div>
+          </div> */}
         </div>
       </CardContent>
     </Card>

@@ -1,31 +1,31 @@
 services:
-  db:
-    image: postgres
-    restart: always
-    container_name: postgresql
-    shm_size: 128mb
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    ports:
-      - 5433:5432
-    volumes:
-      - /opt/var/postgres/data:/var/lib/postgresql/data 
-    # command:  bash -c "apt update && apt install libdbi-perl postgresql-plperl-17 -y"
-    networks:
-      docker_network:
-        ipv4_address: 172.25.0.19
+#   db:
+#     image: postgres
+#     restart: always
+#     container_name: postgresql
+#     shm_size: 128mb
+#     environment:
+#       POSTGRES_USER: user
+#       POSTGRES_PASSWORD: password
+#     ports:
+#       - 5433:5432
+#     volumes:
+#       - /opt/var/postgres/data:/var/lib/postgresql/data 
+#     # command:  bash -c "apt update && apt install libdbi-perl postgresql-plperl-17 -y"
+#     networks:
+#       docker_work:
+#         ipv4_address: 172.25.0.19
 
 
-  adminer:
-    container_name: adminer
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-    networks:
-      docker_network:
-        ipv4_address: 172.25.0.18
+  # adminer:
+  #   container_name: adminer
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+  #   networks:
+  #     docker_work:
+  #       ipv4_address: 172.25.0.18
 
   backend:
     build:
@@ -37,11 +37,27 @@ services:
       - 8081:8081
     env_file:
       - ./backend/.env.prod
-    depends_on:
-      - db
+    # depends_on:
+    #   - db
     networks:
       docker_network:
-        ipv4_address: 172.25.0.20
+        ipv4_address: 172.20.0.11
+
+  gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: foodapp-gateway
+    restart: always
+    ports:
+      - 8082:8082
+    # env_file:
+    #   - ./backend/.env.prod
+    # depends_on:
+    #   - db
+    networks:
+      docker_network:
+        ipv4_address: 172.20.0.10
 
   frontend:
     build:
@@ -53,16 +69,37 @@ services:
       - ./frontend/.env.production
     ports:
       - 3000:3000
-    depends_on:
-      - db
+    # depends_on:
+    #   - db
     networks:
       docker_network:
-        ipv4_address: 172.25.0.21
+        ipv4_address: 172.20.0.12
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: user
+      MINIO_ROOT_PASSWORD: password
+    volumes:
+      - ./minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: always
+    networks:
+      docker_network:
+        ipv4_address: 172.20.0.13
+
 
 networks:
   docker_network:
-    name: docker_network
+    name: docker_work
     driver: bridge
+    external: true
     ipam:
       config:
-        - subnet: 172.25.0.0/16
+        - subnet: 172.20.0.0/16
+
+

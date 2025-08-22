@@ -41,20 +41,22 @@ public class DishController {
         this.dishRepository = dishRepository;
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/dish")
-    public ResponseEntity<DishResponseDTO> addDish(@RequestBody DishRequestDTO dishDTO) {
-        DishResponseDTO newDish = dishService.createDish(dishDTO);
+    public ResponseEntity<DishResponseDTO> addDish(@RequestBody DishRequestDTO dishDTO, @RequestHeader("X-User-Id") Long userId) throws Exception {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("Authenticated user authorities: {}", authentication.getAuthorities());
+        DishResponseDTO newDish = dishService.createDish(dishDTO, userId);
         return new ResponseEntity<>(newDish, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PostMapping("/dish/favourite/{dishId}")
     public ResponseEntity<Boolean> markDishFavourite(@PathVariable long dishId, @RequestHeader("X-User-Id") Long userId) {
         return new ResponseEntity<>(dishService.markDishFavourite(dishId, userId), HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PostMapping("/dish/unFavourite/{dishId}")
     public ResponseEntity<Boolean> markDishUnFavourite(@PathVariable long dishId, @RequestHeader("X-User-Id") Long userId) {
         return new ResponseEntity<>(dishService.unMarkDishFavourite(dishId, userId), HttpStatus.CREATED);
@@ -78,17 +80,17 @@ public class DishController {
             @RequestHeader(value = "X-User-Id", required = false, defaultValue = "0") String userId
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("Authenticated user authorities: {}", authentication.getAuthorities());
 
-        log.info("User with roles: {} is getting dishes.", authentication.getAuthorities());
         PageResponseDTO<List<DishResponseDTO>> dishes = dishService.getDishes(name, city, minRating, maxRating,
                 currentLatitude, currentLongitude, maxDistanceKm, favourites, pageable, Long.parseLong(userId));
         return dishes;
 //        return new ResponseEntity<>(restaurants, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/dish/favourites/{city}")
-    public PageResponseDTO<List<DishResponseDTO>> getdishes(
+    public PageResponseDTO<List<DishResponseDTO>> getFavouritedishes(
             @PathVariable String city,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -102,11 +104,32 @@ public class DishController {
         return dishes;
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN')")
-    @PostMapping("/updateDish")
-    public ResponseEntity<DishResponseDTO> updateDish(@RequestBody DishRequestDTO dishDTO) {
-        DishResponseDTO newDish = dishService.updateDish(dishDTO);
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PutMapping("/updateDish")
+    public ResponseEntity<DishResponseDTO> updateDish(@RequestBody DishRequestDTO dishDTO, @RequestHeader("X-User-Id") Long userId) throws Exception {
+        DishResponseDTO newDish = dishService.updateDish(dishDTO, userId);
         return new ResponseEntity<>(newDish, HttpStatus.CREATED);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/dish/{dishId}")
+    public ResponseEntity deleteDish(@PathVariable Long dishId) {
+        Dish dish = dishRepository.getReferenceById(dishId);
+        dishRepository.delete(dish);
+        return new ResponseEntity<>(true, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/dish/draft")
+    public ResponseEntity<List<DishResponseDTO>> getDraftDishes(
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "0") String userId
+    ){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("Authenticated user authorities: {}", authentication.getAuthorities());
+
+        List<DishResponseDTO> dishes = dishService.getDraftDishes(Long.parseLong(userId));
+        return new ResponseEntity<>(dishes, HttpStatus.ACCEPTED);
+    }
+
+
 
 }

@@ -14,9 +14,11 @@ import { Dish } from "./DishCard";
 import toast from 'react-hot-toast';
 interface AddDishDialogProps {
   onAddDish: (dish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
+  onEditDish?: (dish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
   selectedCity: string;
   open?: boolean; // add this
   onOpenChange?: (open: boolean) => void; // add
+  dishToEdit?: Dish | null;
 }
 
 interface RestaurantNameDropdownProps {
@@ -149,7 +151,7 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
     setShowDropdown(false);
     setRestaurantError(""); // Clear error on valid select
     onValidate(true);
-  };
+  };   // Add this prop
 
 
 
@@ -202,9 +204,11 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
 });
 
 
-export function AddDishDialog({ onAddDish, open, onOpenChange , selectedCity }: AddDishDialogProps) {
+export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange , selectedCity, dishToEdit = null}: AddDishDialogProps) {
 
   const setIsOpen = onOpenChange ?? (() => {});
+  const isEditMode = dishToEdit !== null;
+
 
   const [isRestaurantValid, setIsRestaurantValid] = useState(false);  // <-- ADD THIS
   // const [open, setOpen] = useState(false);
@@ -226,13 +230,17 @@ export function AddDishDialog({ onAddDish, open, onOpenChange , selectedCity }: 
       return;
     }
     if (formData.name && formData.restaurant) {
-      onAddDish({
-        name: formData.name,
-        restaurant: formData.restaurant,
-        description: formData.description,
-        tags: formData.tags,
-        image: formData.image || `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop`,
-      });
+      if (isEditMode && onEditDish) {
+        onEditDish(formData);
+      } else {
+        onAddDish({
+          name: formData.name,
+          restaurant: formData.restaurant,
+          description: formData.description,
+          tags: formData.tags,
+          image: formData.image || `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop`,
+        });
+      }
       setFormData({
         name: "",
         restaurant: "",
@@ -255,6 +263,22 @@ export function AddDishDialog({ onAddDish, open, onOpenChange , selectedCity }: 
     setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }));
   };
 
+    useEffect(() => {
+    if (dishToEdit) {
+      setFormData({ ...dishToEdit });
+      setIsRestaurantValid(true); // Assume valid if editing preset dish
+    } else {
+      setFormData({
+        name: "",
+        restaurant: "",
+        description: "",
+        tags: [],
+        image: ""
+      });
+      setIsRestaurantValid(false);
+    }
+  }, [dishToEdit, open]);
+
   return (
       <Dialog open={open} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
@@ -268,7 +292,7 @@ export function AddDishDialog({ onAddDish, open, onOpenChange , selectedCity }: 
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add New Dish</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Dish" : "Add New Dish"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -340,7 +364,7 @@ export function AddDishDialog({ onAddDish, open, onOpenChange , selectedCity }: 
               <Button type="button" onClick={() => setIsOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Add Dish</Button>
+            <Button type="submit">{isEditMode ? "Save Changes" : "Add Dish"}</Button>
             </div>
           </form>
         </DialogContent>

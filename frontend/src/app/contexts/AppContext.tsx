@@ -2,16 +2,61 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { Dish } from "@/app/components/DishCard";
 import { Restaurant } from "@/app/components/RestaurantCard";
+import { fetchWithAuth } from "@/lib/api";
+import { useCallback } from 'react';
 
 interface AppContextType {
   selectedCity: string;
   setSelectedCity: (city: string) => void;
   selectedTab: string;
   setSelectedTab: (tab: string) => void;
+  
+  // Dishes state and actions
+  dishes: Dish[];
+  setDishes: React.Dispatch<React.SetStateAction<Dish[]>>;
   handleAddDish: (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
-  setDishes: (dishes: Dish[]) => void;
-  handleAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating">) => void;
+  
+  // Restaurants state and actions
+  restaurants: Restaurant[];
   setRestaurants: (restaurants: Restaurant[]) => void;
+  handleAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating">) => void;
+  
+  // Favourites state and actions
+  favouriteDishes: Dish[];
+  setFavouriteDishes: (dishes: Dish[]) => void;
+  favouriteRestaurants: Restaurant[];
+  setFavouriteRestaurants: (restaurants: Restaurant[]) => void;
+  fetchFavourites: () => Promise<void>;
+  removeFavouriteDish: (dishId: string) => void;
+  removeFavouriteRestaurant: (restaurantId: string) => void;
+  
+  // Submitted requests state and actions
+  submittedDishes: Dish[];
+  // setSubmittedDishes: (dishes: Dish[]) => void;
+    setSubmittedDishes: React.Dispatch<React.SetStateAction<Dish[]>>;
+  submittedRestaurants: Restaurant[];
+  setSubmittedRestaurants: (restaurants: Restaurant[]) => void;
+  fetchSubmittedRequests: () => Promise<void>;
+  loadingSubmittedRequests: boolean;
+  setLoadingSubmittedRequests: (loading: boolean) => void;
+  
+  // Loading states
+  loadingDishes: boolean;
+  setLoadingDishes: (loading: boolean) => void;
+  loadingRestaurants: boolean;
+  setLoadingRestaurants: (loading: boolean) => void;
+  loadingFavourites: boolean;
+  setLoadingFavourites: (loading: boolean) => void;
+  
+  // Pagination states
+  dishesCurrentPage: number;
+  setDishesCurrentPage: (page: number) => void;
+  restaurantsCurrentPage: number;
+  setRestaurantsCurrentPage: (page: number) => void;
+  hasMoreDishes: boolean;
+  setHasMoreDishes: (hasMore: boolean) => void;
+  hasMoreRestaurants: boolean;
+  setHasMoreRestaurants: (hasMore: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -19,26 +64,158 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedTab, setSelectedTab] = useState('dishes');
+  
+  // Common state for dishes and restaurants
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  
+  // Favourites state
+  const [favouriteDishes, setFavouriteDishes] = useState<Dish[]>([]);
+  const [favouriteRestaurants, setFavouriteRestaurants] = useState<Restaurant[]>([]);
+  
+  // Submitted requests state
+  const [submittedDishes, setSubmittedDishes] = useState<Dish[]>([]);
+  const [submittedRestaurants, setSubmittedRestaurants] = useState<Restaurant[]>([]);
+  
+  // Loading states
+  const [loadingDishes, setLoadingDishes] = useState(false);
+  const [loadingRestaurants, setLoadingRestaurants] = useState(false);
+  const [loadingFavourites, setLoadingFavourites] = useState(false);
+  const [loadingSubmittedRequests, setLoadingSubmittedRequests] = useState(false);
+  
+  // Pagination states
+  const [dishesCurrentPage, setDishesCurrentPage] = useState(0);
+  const [restaurantsCurrentPage, setRestaurantsCurrentPage] = useState(0);
+  const [hasMoreDishes, setHasMoreDishes] = useState(false);
+  const [hasMoreRestaurants, setHasMoreRestaurants] = useState(true);
 
-
-  const handleAddDish = (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">) => {
+  const handleAddDish = async (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">) => {
     const dish: Dish = {
       ...newDish,
       id: Date.now().toString(),
-      favoriteCount: 0,  // provide default value here
+      // rating: 0,
+      favoriteCount: 0,
     };
-    setDishes(prev => [dish, ...prev]);
+
+    try {
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/dish`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newDish)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      const createdDish: Dish = await response.json();
+      console.log('Created dish:', createdDish);
+      
+      // Use the server response if available, otherwise use local dish
+      setDishes(prev => [createdDish || dish, ...prev]);
+    } catch (error) {
+      console.error('Failed to add dish:', error);
+      // Still add to local state as fallback
+      setDishes(prev => [dish, ...prev]);
+    }
   };
 
-  const handleAddRestaurant = (newRestaurant: Omit<Restaurant, "id" | "rating">) => {
+  const handleAddRestaurant = async (newRestaurant: Omit<Restaurant, "id" | "rating">) => {
     const restaurant: Restaurant = {
       ...newRestaurant,
       id: Date.now().toString(),
-      rating: 0
+      // rating: 0,
     };
-    setRestaurants(prev => [restaurant, ...prev]);
+
+    try {
+      console.log('Adding restaurant:', JSON.stringify({ ...newRestaurant, city: selectedCity }));
+      
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/restaurant`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...newRestaurant, city: selectedCity })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      const createdRestaurant: Restaurant = await response.json();
+      console.log('Created restaurant:', createdRestaurant);
+      
+      // Use the server response if available, otherwise use local restaurant
+      setRestaurants(prev => [createdRestaurant || restaurant, ...prev]);
+    } catch (error) {
+      console.error('Failed to add restaurant:', error);
+      // Still add to local state as fallback
+      setRestaurants(prev => [restaurant, ...prev]);
+    }
+  };
+
+  // Fetch favourites
+  const fetchFavourites = useCallback(async () => {
+    if (!selectedCity) return;
+    
+    setLoadingFavourites(true);
+    try {
+      // Fetch favourite dishes
+      const dishesResponse = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/dish/favourites/${selectedCity}`);
+      if (dishesResponse.ok) {
+        const dishesData = await dishesResponse.json();
+        setFavouriteDishes(dishesData.data || []);
+      }
+
+      // Fetch favourite restaurants
+      const restaurantsResponse = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/restaurant/favourites/${selectedCity}`);
+      if (restaurantsResponse.ok) {
+        const restaurantsData = await restaurantsResponse.json();
+        setFavouriteRestaurants(restaurantsData.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch favourites:', error);
+    } finally {
+      setLoadingFavourites(false);
+    }
+  }, [selectedCity, setFavouriteDishes, setFavouriteRestaurants, setLoadingFavourites]);
+
+  // Fetch submitted requests
+  const fetchSubmittedRequests = useCallback(async () => {
+    setLoadingSubmittedRequests(true);
+    try {
+      // Fetch submitted dishes
+      const dishesResponse = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/dish/draft`);
+      if (dishesResponse.ok) {
+        const dishesData = await dishesResponse.json();
+        console.log(dishesData.data);
+        setSubmittedDishes(dishesData.data || dishesData || []);
+      }
+
+      // Fetch submitted restaurants
+      const restaurantsResponse = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/user/submissions/restaurants`);
+      if (restaurantsResponse.ok) {
+        const restaurantsData = await restaurantsResponse.json();
+        setSubmittedRestaurants(restaurantsData.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch submitted requests:', error);
+    } finally {
+      setLoadingSubmittedRequests(false);
+    }
+  }, []);
+
+  // Remove favourite dish
+  const removeFavouriteDish = async (dishId: string) => {
+    setFavouriteDishes(prev => prev.filter(d => d.id !== dishId));
+    await fetchFavourites();  // refetch updated favourites from API
+  };
+
+  // Remove favourite restaurant
+  const removeFavouriteRestaurant = (restaurantId: string) => {
+    setFavouriteRestaurants(prev => prev.filter(r => r.id !== restaurantId));
   };
 
   return (
@@ -47,10 +224,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSelectedCity,
       selectedTab,
       setSelectedTab,
-      handleAddDish,
+      dishes,
       setDishes,
+      handleAddDish,
+      restaurants,
+      setRestaurants,
       handleAddRestaurant,
-      setRestaurants
+      favouriteDishes,
+      setFavouriteDishes,
+      favouriteRestaurants,
+      setFavouriteRestaurants,
+      fetchFavourites,
+      removeFavouriteDish,
+      removeFavouriteRestaurant,
+      submittedDishes,
+      setSubmittedDishes,
+      submittedRestaurants,
+      setSubmittedRestaurants,
+      fetchSubmittedRequests,
+      loadingSubmittedRequests,
+      setLoadingSubmittedRequests,
+      loadingDishes,
+      setLoadingDishes,
+      loadingRestaurants,
+      setLoadingRestaurants,
+      loadingFavourites,
+      setLoadingFavourites,
+      dishesCurrentPage,
+      setDishesCurrentPage,
+      restaurantsCurrentPage,
+      setRestaurantsCurrentPage,
+      hasMoreDishes,
+      setHasMoreDishes,
+      hasMoreRestaurants,
+      setHasMoreRestaurants,
     }}>
       {children}
     </AppContext.Provider>

@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-
+//
 public interface DishRepository extends JpaRepository<Dish, Long> {
 
     @Query("""
@@ -18,7 +18,6 @@ public interface DishRepository extends JpaRepository<Dish, Long> {
   JOIN r.city c
   WHERE (:name IS NULL OR :name = '' OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
     AND LOWER(c.name) = LOWER(:city)
-    AND d.isDraft = FALSE 
 
 """)
     Page<Dish> getDishes(

@@ -1,5 +1,5 @@
 'use client'
-import {useState, useMemo, useEffect} from "react";
+import { useState, useMemo, useEffect } from "react";
 
 import { FilterPanel } from "./components/FilterPanel";
 import { DishCard, Dish } from "./components/DishCard";
@@ -8,31 +8,38 @@ import { AddDishDialog } from "./components/AddDishDialog";
 import { AddRestaurantDialog } from "./components/AddRestaurantDialog";
 import { Tabs, TabsContent } from "./components/ui/tabs";
 import { fetchWithAuth } from "@/lib/api";
-import {Plus} from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAppContext } from "./contexts/AppContext";
+import { useSession, SessionContextType } from ".//contexts/SessionContext";
 
 export default function App() {
   const {
     selectedCity,
     setSelectedCity,
     selectedTab,
+    dishes,
     setDishes,
+    restaurants,
     setRestaurants,
     handleAddDish,
     handleAddRestaurant,
+    loadingDishes,
+    setLoadingDishes,
+    loadingRestaurants,
+    setLoadingRestaurants,
+    dishesCurrentPage,
+    setDishesCurrentPage,
+    restaurantsCurrentPage,
+    setRestaurantsCurrentPage,
+    hasMoreDishes,
+    setHasMoreDishes,
+    hasMoreRestaurants,
+    setHasMoreRestaurants,
   } = useAppContext();
 
   const [hasMounted, setHasMounted] = useState(false);
-  const [dishes, setLocalDishes] = useState<Dish[]>([]);
-  const [restaurants, setLocalRestaurants] = useState<Restaurant[]>([]);
 
-  const [dishesCurrentPage] = useState(0);
-  const [restaurantsCurrentPage, setRestaurantsCurrentPage] = useState(0);
-  const [loadingRestaurants, setLoadingRestaurants] = useState(false);
-  const [hasMoreRestaurants, setHasMoreRestaurants] = useState(true);
-  const [loadingDishes, setLoadingDishes] = useState(false);
-  const [hasMoreDishes, setHasMoreDishes] = useState(false);
-
+  // Filter states
   const [dishSearch, setDishSearch] = useState("");
   const [dishTags, setDishTags] = useState<string[]>([]);
   const [dishRange, setDishRange] = useState(10);
@@ -41,69 +48,86 @@ export default function App() {
   const [restaurantTags, setRestaurantTags] = useState<string[]>([]);
   const [restaurantRange, setRestaurantRange] = useState(10);
 
+  const { session }: SessionContextType = useSession();
+
+
   useEffect(() => {
     setHasMounted(true);
     const city = localStorage.getItem('selectedCity') || '';
     setSelectedCity(city);
   }, [setSelectedCity]);
 
+  // Reset restaurants when city changes
   useEffect(() => {
-    setLocalRestaurants([]);
+    setRestaurants([]);
     setRestaurantsCurrentPage(0);
     setHasMoreRestaurants(true);
-  }, [selectedCity]);
+  }, [selectedCity, setRestaurants, setRestaurantsCurrentPage, setHasMoreRestaurants]);
 
+  // Reset dishes when city changes
+  useEffect(() => {
+    setDishes([]);
+    setDishesCurrentPage(0);
+    setHasMoreDishes(false);
+  }, [selectedCity, setDishes, setDishesCurrentPage, setHasMoreDishes]);
+
+  // Fetch restaurants
   useEffect(() => {
     if (!selectedCity) return;
     setLoadingRestaurants(true);
 
     fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/restaurant/${selectedCity}?page=${restaurantsCurrentPage}`)
-        .then((res) => {
-          if (!res.ok) throw new Error(`Failed to fetch restaurants for ${selectedCity}?page=${restaurantsCurrentPage}`);
-          return res.json();
-        })
-        .then(data => {
-          const newRestaurants = restaurantsCurrentPage === 0 ? data.data : [...restaurants, ...data.data];
-          setLocalRestaurants(newRestaurants);
-          setRestaurants(newRestaurants);
-          setHasMoreRestaurants(restaurantsCurrentPage + 1 < data.totalPages);
-        })
-        .catch(err => console.error(err))
-        .finally(() => setLoadingRestaurants(false));
-  }, [selectedCity, restaurantsCurrentPage, setRestaurants]);
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to fetch restaurants for ${selectedCity}?page=${restaurantsCurrentPage}`);
+        return res.json();
+      })
+      .then(data => {
+        setRestaurants(prev => {
+          const newRestaurants = restaurantsCurrentPage === 0 ? data.data : [...prev, ...data.data];
+          return newRestaurants;
+        });
+        setHasMoreRestaurants(restaurantsCurrentPage + 1 < data.totalPages);
+      })
+      .catch(err => console.error(err))
+      .finally(() => setLoadingRestaurants(false));
+  }, [selectedCity, restaurantsCurrentPage, setRestaurants, setLoadingRestaurants, setHasMoreRestaurants]);
 
+  // Fetch dishes
+  useEffect(() => {
+    if (!selectedCity) return;
+    setLoadingDishes(true);
+
+    fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/dish/${selectedCity}?page=${dishesCurrentPage}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to fetch dishes for ${selectedCity}?page=${dishesCurrentPage}`);
+        return res.json();
+      })
+      .then(data => {
+        setDishes(prev => {
+          const newDishes = dishesCurrentPage === 0 ? data.data : [...prev, ...data.data];
+          return newDishes;
+        });
+        setHasMoreDishes(dishesCurrentPage + 1 < data.totalPages);
+      })
+      .catch(err => console.error(err))
+      .finally(() => setLoadingDishes(false));
+  }, [selectedCity, dishesCurrentPage, setDishes, setLoadingDishes, setHasMoreDishes]);
+
+  // Infinite scroll for restaurants
   useEffect(() => {
     function handleScroll() {
       if (
-          window.innerHeight + window.scrollY >= document.body.offsetHeight - 300
-          && !loadingRestaurants
-          && hasMoreRestaurants
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 300
+        && !loadingRestaurants
+        && hasMoreRestaurants
+        && selectedTab === "restaurants"
       ) {
         setRestaurantsCurrentPage(prev => prev + 1);
       }
     }
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [loadingRestaurants, hasMoreRestaurants]);
-
-  useEffect(() => {
-    if (!selectedCity) return;
-    setLoadingDishes(true);
-
-    fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/dish/${selectedCity}?page=${dishesCurrentPage}`)
-        .then((res) => {
-          if (!res.ok) throw new Error(`Failed to fetch dishes for ${selectedCity}?page=${dishesCurrentPage}`);
-          return res.json();
-        })
-        .then(data => {
-          const newDishes = dishesCurrentPage === 0 ? data.data : [...dishes, ...data.data];
-          setLocalDishes(newDishes);
-          setDishes(newDishes);
-          setHasMoreDishes(dishesCurrentPage + 1 < data.totalPages);
-        })
-        .catch(err => console.error(err))
-        .finally(() => setLoadingDishes(false));
-  }, [selectedCity, dishesCurrentPage, setDishes]);
+  }, [loadingRestaurants, hasMoreRestaurants, selectedTab, setRestaurantsCurrentPage]);
 
   const filteredDishes = useMemo(() => {
     return dishes.filter(dish => {
@@ -127,49 +151,59 @@ export default function App() {
     const updatedRestaurants = restaurants.map(restaurant =>
       restaurant.id === restaurantId ? { ...restaurant, rating } : restaurant
     );
-    setLocalRestaurants(updatedRestaurants);
     setRestaurants(updatedRestaurants);
+  };
+
+  const handleRemoveDish = (dishId: string) => {
+    setDishes(dishes.filter(d => d.id !== dishId));
+  };
+
+  const handleRemoveRestaurant = (restaurantId: string) => {
+    setRestaurants(restaurants.filter(r => r.id !== restaurantId));
   };
 
   if (!hasMounted) return null;
 
-  function AddDishDialogFloatingTrigger({ onAddDish, selectedCity }: { onAddDish: (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">)  => void, selectedCity: string }) {
+  function AddDishDialogFloatingTrigger({ onAddDish, selectedCity }: { onAddDish: (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void, selectedCity: string }) {
     const [open, setOpen] = useState(false);
     return (
-        <>
+      <>
         {open && (
-          <AddDishDialog open={open} onOpenChange={setOpen} onAddDish={onAddDish} selectedCity={selectedCity} />)}
-          <div className="fixed bottom-4 right-4 z-50 block sm:hidden">
-            <button
-                onClick={() => setOpen(true)}
-                className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg flex items-center justify-center"
-                aria-label="Add Dish"
-                title="Add Dish"
-            >
-              <Plus size={24} />
-            </button>
-          </div>
-        </>
+          <AddDishDialog open={open} onOpenChange={setOpen} onAddDish={onAddDish} selectedCity={selectedCity} />
+        )}
+        <div className="fixed bottom-4 right-4 z-50 block sm:hidden">
+          <button
+            onClick={() => setOpen(true)}
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg flex items-center justify-center"
+            aria-label="Add Dish"
+            title="Add Dish"
+          >
+            <Plus size={24} />
+          </button>
+        </div>
+      </>
     );
   }
 
   function AddRestaurantDialogFloatingTrigger({ onAddRestaurant }: { onAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating">) => void }) {
     const [open, setOpen] = useState(false);
+    
     return (
-        <>
+      <>
         {open && (
-          <AddRestaurantDialog open={open} onOpenChange={setOpen} onAddRestaurant={onAddRestaurant}  />)}
-          <div className="fixed bottom-4 right-4 z-50 block sm:hidden">
-            <button
-                onClick={() => setOpen(true)}
-                className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg flex items-center justify-center"
-                aria-label="Add Restaurant"
-                title="Add Restaurant"
-            >
-              <Plus size={24} />
-            </button>
-          </div>
-        </>
+          <AddRestaurantDialog open={open} onOpenChange={setOpen} onAddRestaurant={onAddRestaurant} />
+        )}
+        <div className="fixed bottom-4 right-4 z-50 block sm:hidden">
+          <button
+            onClick={() => setOpen(true)}
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg flex items-center justify-center"
+            aria-label="Add Restaurant"
+            title="Add Restaurant"
+          >
+            <Plus size={24} />
+          </button>
+        </div>
+      </>
     );
   }
 
@@ -193,13 +227,20 @@ export default function App() {
                     <DishCard
                       key={dish.id}
                       dish={dish}
-                      onRemove={() => void 0}
+                      onRemove={() => handleRemoveDish(dish.id)}
+                      onFavouriteRemove={() => {} }
+                      showMenu={session.token ? true: false}
                     />
                   ))}
                 </div>
-                {filteredDishes.length === 0 && (
+                {filteredDishes.length === 0 && !loadingDishes && (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground">No dishes found matching your criteria.</p>
+                  </div>
+                )}
+                {loadingDishes && (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">Loading dishes...</p>
                   </div>
                 )}
               </div>
@@ -223,24 +264,31 @@ export default function App() {
                       key={restaurant.id}
                       restaurant={restaurant}
                       onRatingChange={handleRestaurantRating}
-                      onRemove={() => void 0}
+                      onRemove={() => handleRemoveRestaurant(restaurant.id)}
+                      onFavouriteRemove={() => {} }
                     />
                   ))}
                 </div>
-                {filteredRestaurants.length === 0 && (
+                {filteredRestaurants.length === 0 && !loadingRestaurants && (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground">No restaurants found matching your criteria.</p>
+                  </div>
+                )}
+                {loadingRestaurants && (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">Loading restaurants...</p>
                   </div>
                 )}
               </div>
             </div>
           </TabsContent>
         </Tabs>
+        
         {selectedTab === "dishes" && selectedCity && (
-            <AddDishDialogFloatingTrigger onAddDish={handleAddDish} selectedCity={selectedCity} />
+          <AddDishDialogFloatingTrigger onAddDish={handleAddDish} selectedCity={selectedCity} />
         )}
         {selectedTab === "restaurants" && selectedCity && (
-            <AddRestaurantDialogFloatingTrigger onAddRestaurant={handleAddRestaurant} />
+          <AddRestaurantDialogFloatingTrigger onAddRestaurant={handleAddRestaurant} />
         )}
       </div>
     </div>

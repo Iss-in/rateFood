@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -23,6 +22,12 @@ const signUpSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
+
+// Interface for the authentication response matching your Spring Boot backend
+interface AuthResponse {
+  token: string;
+  roles: string[];
+}
 
 export function AuthDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
   const { login } = useSession();
@@ -55,19 +60,20 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean, onOpenChange
         body: JSON.stringify(values),
       });
 
-      const data = await response.json();
+      const data: AuthResponse = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || 'Something went wrong');
       }
 
-      if (data.token) {
-        login(data.token);
+      if (data.token && data.roles) {
+        // Pass both token and roles to the login function
+        login(data.token, data.roles);
         toast.success('Sign in successful!');
         onOpenChange(false);
         window.location.href = "/";
       } else {
-        throw new Error('Token not found in response');
+        throw new Error('Token or roles not found in response');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';

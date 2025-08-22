@@ -13,8 +13,8 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "dish")
-public class Dish {
+@Table(name = "draft_dish")
+public class DraftDish  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,13 +33,6 @@ public class Dish {
     @Column(name="description")
     private String description;
 
-
-//    @Column(name="cuisine")
-//    private String cuisine;
-//
-//    @Column(name="place") // use it as secondary key
-//    private String place;
-
     @Column(name="upvote")
     private int upvote;
 
@@ -55,12 +48,11 @@ public class Dish {
 
     @Column(name="tags")
     private List<String> tags;
-//
-//    @Builder.Default
-//    @Column(name="is_draft")
-//    private boolean isDraft = false;
 
-    @Column
-    @Builder.Default
-    private int favoriteCount = 0;
+    @Column(name="user_id")
+    private Long userId;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "dish_id", nullable = true)
+    private Dish dish ;
 }

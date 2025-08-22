@@ -4,6 +4,7 @@ import com.ratefood.app.dto.request.RestaurantRequestDTO;
 import com.ratefood.app.dto.response.DishResponseDTO;
 import com.ratefood.app.dto.response.PageResponseDTO;
 import com.ratefood.app.dto.response.RestaurantResponseDTO;
+import com.ratefood.app.entity.Dish;
 import com.ratefood.app.entity.Restaurant;
 import com.ratefood.app.entity.Restaurant;
 import com.ratefood.app.repository.RestaurantRepository;
@@ -32,20 +33,28 @@ public class RestaurantController {
     @Autowired
     private RestaurantService restaurantService;
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/restaurant")
-    public ResponseEntity<Restaurant> addRestaurant(@RequestBody RestaurantRequestDTO restaurantDTO) {
+    public ResponseEntity<Restaurant> addRestaurant(@RequestBody RestaurantRequestDTO restaurantDTO) throws Exception {
         Restaurant newRestaurant = restaurantService.addRestaurant(restaurantDTO);
         return new ResponseEntity<>(newRestaurant, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/restaurant/draft")
+    public ResponseEntity<Restaurant> addDraftRestaurant(@RequestBody RestaurantRequestDTO restaurantDTO) throws Exception {
+        restaurantDTO.setDraft(false);
+        Restaurant newRestaurant = restaurantService.addRestaurant(restaurantDTO);
+        return new ResponseEntity<>(newRestaurant, HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PostMapping("/restaurant/favourite/{restaurantId}")
     public ResponseEntity<Boolean> markRestaurantFavourite(@PathVariable long restaurantId, @RequestHeader("X-User-Id") Long userId) {
         return new ResponseEntity<>(restaurantService.markRestaurantFavourite(restaurantId, userId), HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PostMapping("/restaurant/unFavourite/{restaurantId}")
     public ResponseEntity<Boolean> markRestaurantUnFavourite(@PathVariable long restaurantId, @RequestHeader("X-User-Id") Long userId) {
         return new ResponseEntity<>(restaurantService.unMarkRestaurantFavourite(restaurantId, userId), HttpStatus.ACCEPTED);
@@ -74,7 +83,7 @@ public class RestaurantController {
 //        return new ResponseEntity<>(restaurants, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/restaurant/favourites/{city}")
     public PageResponseDTO<List<RestaurantResponseDTO>> getRestaurants(
             @PathVariable String city,
@@ -88,5 +97,13 @@ public class RestaurantController {
 //        log.info("User with roles: {} is getting dishes.", authentication.getAuthorities());
         PageResponseDTO<List<RestaurantResponseDTO>> restaurants = restaurantService.getFavouriteRestaurants(city, pageable, Long.parseLong(userId));
         return restaurants;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/restaurant/{restaurantId}")
+    public ResponseEntity deleteRestaurant(@PathVariable Long restaurantId) {
+        Restaurant restaurant = restaurantRepository.getReferenceById(restaurantId);
+        restaurantRepository.delete(restaurant);
+        return new ResponseEntity<>(true, HttpStatus.CREATED);
     }
 }

@@ -43,7 +43,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .map(authentication -> {
                     var user = (User) authentication.getPrincipal();
                     var jwt = jwtService.generateToken(user);
-                    return JwtAuthenticationResponse.builder().token(jwt).build();
+                    var roles = user.getAuthorities().stream()
+                            .map(auth -> auth.getAuthority())
+                            .toList();
+                    return JwtAuthenticationResponse.builder().token(jwt).roles(roles) .build();
                 });
     }
 }

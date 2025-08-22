@@ -6,6 +6,7 @@ import com.ratefood.app.dto.response.DishResponseDTO;
 import com.ratefood.app.dto.response.PageResponseDTO;
 import com.ratefood.app.dto.response.RestaurantResponseDTO;
 import com.ratefood.app.entity.*;
+import com.ratefood.app.enums.ImageType;
 import com.ratefood.app.repository.CityRepository;
 import com.ratefood.app.repository.FavouriteRestaurantRepository;
 import com.ratefood.app.repository.RestaurantRepository;
@@ -35,6 +36,9 @@ public class RestaurantService {
     @Autowired
     private RestaurantConverter restaurantConverter;
 
+    @Autowired
+    private ImageService imageService;
+
     public PageResponseDTO<List<RestaurantResponseDTO>> getRestaurants(
             String name,
             String city,
@@ -50,24 +54,30 @@ public class RestaurantService {
                 currentLongitude, maxDistanceKm, pageable);
 
         PageResponseDTO<List<RestaurantResponseDTO>> dto = new PageResponseDTO<>();
-        dto.setData(restaurants.getContent().stream().map(restaurant -> restaurantConverter.fromRestaurantToRestaurantResponseDTO(restaurant, userId)).collect(java.util.stream.Collectors.toList()));
+        dto.setData(restaurants.getContent().stream().map(restaurant -> {
+            try {
+                return restaurantConverter.fromRestaurantToRestaurantResponseDTO(restaurant, userId);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(java.util.stream.Collectors.toList()));
         dto.setTotalPages(restaurants.getTotalPages());
         dto.setTotalElements((int) restaurants.getTotalElements());
         dto.setCurrentPage(restaurants.getNumber());
         return dto;
     }
 
-    public Restaurant addRestaurant(RestaurantRequestDTO restaurantDTO){
+    public Restaurant addRestaurant(RestaurantRequestDTO restaurantDTO) throws Exception {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
-
-        restaurantDTO.setDraft(isAdmin);  // true if admin, false if not
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        boolean isAdmin = authentication.getAuthorities().stream()
+//                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
+//
+//        restaurantDTO.setDraft(isAdmin);  // true if admin, false if not
 
         String cityName = restaurantDTO.getCity();
         City city = cityRepository.findByName(cityName);
-        Restaurant restaurant = Restaurant.builder()
+        Restaurant restaurantEntity = Restaurant.builder()
 //                .id(1)
                 .name(restaurantDTO.getName())
                 .cuisine(restaurantDTO.getCuisine())
@@ -78,7 +88,16 @@ public class RestaurantService {
 //                .longitude(restaurantDTO.getLongitude()) TODO: get location from user
 //                .latitude(restaurantDTO.getLatitude())
                 .build();
-        return restaurantRepository.save(restaurant);
+        Restaurant restaurantCreated = restaurantRepository.save(restaurantEntity);
+        if(restaurantDTO.getImage() != null){
+            //TODO: can compress image to a size ?
+            String key = ImageType.RESTAURANT + "/" + String.valueOf(restaurantCreated.getId()) ;
+            imageService.uploadImage(restaurantDTO.getImage(), key);
+            String imageLink = imageService.getPresignedUrl(key, 10);
+            restaurantCreated.setImage(imageLink);
+        }
+
+        return restaurantRepository.save(restaurantCreated);
     }
 
 
@@ -90,7 +109,13 @@ public class RestaurantService {
         Page<Restaurant> restaurants = restaurantRepository.getRestaurantsByCIty(city, pageable);
 
         PageResponseDTO<List<RestaurantResponseDTO>> dto = new PageResponseDTO<>();
-        List<RestaurantResponseDTO> dtoList = restaurants.getContent().stream().map(restaurant -> restaurantConverter.fromRestaurantToRestaurantResponseDTO(restaurant, userId)).collect(Collectors.toList());
+        List<RestaurantResponseDTO> dtoList = restaurants.getContent().stream().map(restaurant -> {
+            try {
+                return restaurantConverter.fromRestaurantToRestaurantResponseDTO(restaurant, userId);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList());
         dto.setData(dtoList.stream().filter(dish -> dish.getIsFavourite() != null && dish.getIsFavourite()).collect(Collectors.toList()));
         dto.setTotalPages(restaurants.getTotalPages());
         dto.setTotalElements((int) restaurants.getTotalElements());

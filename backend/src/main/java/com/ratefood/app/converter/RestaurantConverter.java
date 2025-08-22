@@ -4,7 +4,9 @@ import com.ratefood.app.dto.response.RestaurantResponseDTO;
 
 import com.ratefood.app.entity.FavouriteRestaurant;
 import com.ratefood.app.entity.Restaurant;
+import com.ratefood.app.enums.ImageType;
 import com.ratefood.app.repository.FavouriteRestaurantRepository;
+import com.ratefood.app.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,9 @@ public class RestaurantConverter {
 
     @Autowired
     FavouriteRestaurantRepository favouriteRestaurantRepository;
+
+    @Autowired
+    private ImageService imageService;
 
     public RestaurantResponseDTO fromRestaurantToRestaurantResponseDTO(Restaurant restaurant){
         RestaurantResponseDTO responseDto = RestaurantResponseDTO.builder()
@@ -33,7 +38,7 @@ public class RestaurantConverter {
         return responseDto;
     }
 
-    public RestaurantResponseDTO fromRestaurantToRestaurantResponseDTO(Restaurant restaurant, Long userId){
+    public RestaurantResponseDTO fromRestaurantToRestaurantResponseDTO(Restaurant restaurant, Long userId) throws Exception {
         RestaurantResponseDTO responseDto = RestaurantResponseDTO.builder()
                 .name(restaurant.getName())
                 .id(restaurant.getId())
@@ -43,7 +48,8 @@ public class RestaurantConverter {
                 .rating(restaurant.getRating())
                 .latitude(restaurant.getLatitude())
                 .longitude(restaurant.getLongitude())
-                .image(restaurant.getImage())
+//                .image(restaurant.getImage())
+                .image(imageService.getPresignedUrl(ImageType.RESTAURANT + "/" + String.valueOf(restaurant.getId()) , 100))
                 .city(restaurant.getCity())
                 .build();
         if(userId != 0) {
