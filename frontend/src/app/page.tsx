@@ -189,27 +189,26 @@ export default function App() {
     );
   }
 
-  function AddRestaurantDialogFloatingTrigger({ onAddRestaurant }: { onAddRestaurant: (newRestaurant: Omit<Restaurant,  "rating" | "favoriteCount">) => void }) {
-    const [open, setOpen] = useState(false);
-    
-    return (
-      <>
-        {open && (
-          <AddRestaurantDialog open={open} onOpenChange={setOpen} onAddRestaurant={onAddRestaurant} />
-        )}
-        <div className="fixed bottom-4 right-4 z-50 block sm:hidden">
-          {/* <button
-            onClick={() => setOpen(true)}
-            className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg flex items-center justify-center"
-            aria-label="Add Restaurant"
-            title="Add Restaurant"
-          >
-            <Plus size={24} />
-          </button> */}
-        </div>
-      </>
-    );
-  }
+function AddRestaurantDialogFloatingTrigger({ onAddRestaurant }: { onAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating" | "favoriteCount">) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      {open && (
+        <AddRestaurantDialog open={open} onOpenChange={setOpen} onAddRestaurant={onAddRestaurant} />
+      )}
+      <div className="fixed bottom-4 right-4 z-50 block sm:hidden">
+        {/* <button
+          onClick={() => setOpen(true)}
+          className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg flex items-center justify-center"
+          aria-label="Add Restaurant"
+          title="Add Restaurant"
+        >
+          <Plus size={24} />
+        </button> */}
+      </div>
+    </>
+  );
+}
 
   return (
     <div className="min-h-screen bg-background-secondary">

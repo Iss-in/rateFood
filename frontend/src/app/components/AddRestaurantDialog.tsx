@@ -8,7 +8,7 @@ import { X, Plus } from "lucide-react";
 import { Restaurant } from "./RestaurantCard";
 
 interface AddRestaurantDialogProps {
-  onAddRestaurant: (restaurant: Omit<Restaurant, "rating" | "favoriteCount">) => void;
+  onAddRestaurant: (restaurant: Omit<Restaurant, "id" | "rating" | "favoriteCount">) => void;
   onEditRestaurant?: (restaurant: Omit<Restaurant, "rating" | "favoriteCount">) => void;
   restaurantToEdit?: Restaurant | null;
   open?: boolean;
@@ -33,7 +33,6 @@ export function AddRestaurantDialog({
   const isEditMode = restaurantToEdit !== null;
 
   const [formData, setFormData] = useState({
-    id: "", // Add id field
     name: "",
     cuisine: "",
     description: "",
@@ -46,7 +45,6 @@ export function AddRestaurantDialog({
   useEffect(() => {
     if (restaurantToEdit) {
       setFormData({
-        id: restaurantToEdit.id, // Include id for edit mode
         name: restaurantToEdit.name,
         cuisine: restaurantToEdit.cuisine,
         description: restaurantToEdit.description,
@@ -55,7 +53,6 @@ export function AddRestaurantDialog({
       });
     } else {
       setFormData({
-        id: "", // Empty id for add mode
         name: "",
         cuisine: "",
         description: "",
@@ -69,16 +66,17 @@ export function AddRestaurantDialog({
     e.preventDefault();
     if (formData.name && formData.cuisine) {
       if (isEditMode && onEditRestaurant) {
-        // For edit mode, include the id in the data
-        onEditRestaurant(formData);
+        // For edit mode, include the id from the restaurant being edited
+        onEditRestaurant({
+          id: restaurantToEdit!.id,
+          ...formData
+        });
       } else {
-        // For add mode, exclude the id from the data
-        const { id, ...addData } = formData;
-        onAddRestaurant(addData);
+        // For add mode, just pass the form data (no id needed)
+        onAddRestaurant(formData);
       }
       
       setFormData({
-        id: "",
         name: "",
         cuisine: "",
         description: "",

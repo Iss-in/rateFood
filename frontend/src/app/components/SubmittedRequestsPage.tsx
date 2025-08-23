@@ -86,6 +86,8 @@ export function SubmittedRequestsPage() {
                 restaurant={restaurant}
                 onFavouriteRemove={() => { }}
                   isSubmittedPage={isSubmittedPage}
+                  selectedCity=""
+                  showMenu={false}
                 // onRatingChange={(restaurant.id) => { }}
                 onRemove={() => { }}
               />

@@ -23,7 +23,7 @@ interface AppContextType {
   setRestaurants: React.Dispatch<React.SetStateAction<Restaurant[]>>;
 
   // setRestaurants: (restaurants: Restaurant[]) => void;
-  handleAddRestaurant: (newRestaurant: Omit<Restaurant, "rating" | "favoriteCount">) => void;
+  handleAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating" | "favoriteCount">) => void;
   
   // Favourites state and actions
   favouriteDishes: Dish[];
@@ -135,13 +135,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setDishes(prev => [dish, ...prev]);
     }
   };
+const handleAddRestaurant = async (newRestaurant: Omit<Restaurant, "id" | "rating" | "favoriteCount">) => {
+  const restaurant: Restaurant = {
+    ...newRestaurant,
+    id: Date.now().toString(), // or however you generate IDs
+    favoriteCount: 0, // Initialize with 0 favorites
+    // rating: 0, // Add this if you need rating
+  };
 
-  const handleAddRestaurant = async (newRestaurant: Omit<Restaurant,  "rating" | "favoriteCount">) => {
-    const restaurant: Restaurant = {
-      ...newRestaurant,
-      id: Date.now().toString(),
-      // rating: 0,
-    };
 
     try {
       console.log('Adding restaurant:', JSON.stringify({ ...newRestaurant, city: selectedCity }));
