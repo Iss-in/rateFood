@@ -11,9 +11,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.UUID;
 
 
-public interface RestaurantRepository extends JpaRepository<Restaurant, Long> , JpaSpecificationExecutor<Restaurant> {
+public interface RestaurantRepository extends JpaRepository<Restaurant, UUID> , JpaSpecificationExecutor<Restaurant> {
 
     @Query(value = """
     SELECT r FROM Restaurant r
@@ -28,7 +29,7 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> , 
             @Param("currentLatitude") Double currentLatitude,
             @Param("currentLongitude") Double currentLongitude,
             @Param("maxDistanceKm") Double maxDistanceKm,
-            Long userId,
+            UUID userId,
             Pageable pageable
     );
 
@@ -55,7 +56,7 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> , 
             @Param("currentLatitude") Double currentLatitude,
             @Param("currentLongitude") Double currentLongitude,
             @Param("maxDistanceKm") Double maxDistanceKm,
-            @Param("userId") Long userId,
+            @Param("userId") UUID userId,
             Pageable pageable
     );
 

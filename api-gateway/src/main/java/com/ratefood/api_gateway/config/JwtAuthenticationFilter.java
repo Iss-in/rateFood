@@ -74,9 +74,10 @@ public class JwtAuthenticationFilter implements WebFilter {
 
                         ServerWebExchange modifiedExchange = exchange.mutate()
                                 .request(r -> r.header("X-User-Email", userDetails.getUsername())
-                                        .header("X-User-Id", String.valueOf(((com.ratefood.api_gateway.entity.User) userDetails).getId()))
+                                        .header("X-User-Id", ((com.ratefood.api_gateway.entity.User) userDetails).getId().toString())
                                         .header("X-User-Roles", roles))
                                 .build();
+
 
                         return chain.filter(modifiedExchange)
                                 .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));

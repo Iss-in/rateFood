@@ -9,12 +9,13 @@ import lombok.NoArgsConstructor;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
 public class DishRequestDTO {
 
-    public long id;
+    private UUID id;
     
     private String name;
 

@@ -7,11 +7,12 @@ import lombok.Data;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.List;
+import java.util.UUID;
 
 @Builder
 @Data
 public class DishResponseDTO {
-    private Long id;
+    private UUID id;
     private String name;
 
     private String restaurant;

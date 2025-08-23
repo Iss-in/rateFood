@@ -1,15 +1,14 @@
 package com.ratefood.app.service;
 
 import com.ratefood.app.enums.ImageType;
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
 import io.minio.http.Method;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -77,6 +76,44 @@ public class ImageService {
         }
         return "";
     }
+
+
+    public String replaceImage(String oldKey, String newKey) throws Exception {
+        // Step 1: Copy object to new key
+        minioClient.copyObject(
+                CopyObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(newKey)
+                        .source(io.minio.CopySource.builder()
+                                .bucket(bucketName)
+                                .object(oldKey)
+                                .build())
+                        .build()
+        );
+
+        // Step 2: Delete original object
+        minioClient.removeObject(
+                RemoveObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(oldKey)
+                        .build()
+        );
+
+        // Step 3: Generate and return presigned URL for the new key
+        return getPresignedUrl(newKey, 100);
+    }
+
+    public void deleteByKey(String key) throws Exception {
+        minioClient.removeObject(
+                RemoveObjectArgs.builder()
+                        .bucket(bucketName)  // your bucket name variable
+                        .object(key)
+                        .build()
+        );
+        System.out.println("Deleted image with key: " + key);
+    }
+
+
 
 
 }

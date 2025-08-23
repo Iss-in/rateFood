@@ -3,10 +3,12 @@ package com.ratefood.app.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.antlr.v4.runtime.misc.NotNull;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -17,13 +19,16 @@ import java.util.Set;
 public class Dish {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
-    private Long id;
+//    @GeneratedValue(generator = "UUID")
+//    @GenericGenerator(
+//            name = "UUID",
+//            strategy = "org.hibernate.id.UUIDGenerator"
+//    )
+//    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(name = "image", columnDefinition = "TEXT")
-    @Builder.Default
-    private String image = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1160&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+    private String image;
 
     @NotNull
     @Column(name="name")
@@ -52,6 +57,9 @@ public class Dish {
     @ManyToOne
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
+
+    @Column(name = "restaurant_uuid")
+    private UUID restaurantUuid ;
 
     @Column(name="tags")
     private List<String> tags;

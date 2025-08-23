@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class RestaurantConverter {
@@ -56,7 +57,7 @@ public class RestaurantConverter {
         return responseDto;
     }
 
-    public RestaurantResponseDTO fromRestaurantToRestaurantResponseDTO(Restaurant restaurant, Long userId) throws Exception {
+    public RestaurantResponseDTO fromRestaurantToRestaurantResponseDTO(Restaurant restaurant, UUID userId) throws Exception {
         RestaurantResponseDTO responseDto = RestaurantResponseDTO.builder()
                 .name(restaurant.getName())
                 .id(restaurant.getId())
@@ -76,7 +77,7 @@ public class RestaurantConverter {
 //        else
 //        responseDto.setImage(imageService.getPresignedUrl(ImageType.DRAFT_RESTAURANT + "/" + String.valueOf(restaurant.getId()) , 100));
 
-        if(userId != 0) {
+        if(userId != null) {
             List<FavouriteRestaurant> favouriteDishes = favouriteRestaurantRepository.getFavouriteRestaurantsByUserId(userId);
             if (favouriteDishes.stream().anyMatch(favRestaurant -> favRestaurant.getRestaurant().getId() == restaurant.getId())) {
                 responseDto.setIsFavourite(true);

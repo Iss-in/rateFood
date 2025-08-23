@@ -2,7 +2,6 @@ package com.ratefood.app.service;
 
 import com.ratefood.app.converter.RestaurantConverter;
 import com.ratefood.app.dto.request.RestaurantRequestDTO;
-import com.ratefood.app.dto.response.DishResponseDTO;
 import com.ratefood.app.dto.response.PageResponseDTO;
 import com.ratefood.app.dto.response.RestaurantResponseDTO;
 import com.ratefood.app.entity.*;
@@ -21,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,7 +53,7 @@ public class RestaurantService {
             Double currentLongitude,
             Double maxDistanceKm,
             Pageable pageable,
-            Long userId
+            UUID userId
     ){
 //        Page<Restaurant> restaurants = restaurantRepository.getRestaurants(name, city, minRating, maxRating, currentLatitude,
 //                currentLongitude, maxDistanceKm, pageable);
@@ -96,14 +96,14 @@ public class RestaurantService {
         return dto;
     }
 
-    public RestaurantResponseDTO addRestaurant(RestaurantRequestDTO restaurantDTO, Long userId) throws Exception {
+    public RestaurantResponseDTO addRestaurant(RestaurantRequestDTO restaurantDTO, UUID userId) throws Exception {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
         String cityName = restaurantDTO.getCity();
-        City city = cityRepository.findByName(cityName).orElseThrow(() -> new EntityNotFoundException("City not found"));
+        City city = cityRepository.findByName(cityName.toLowerCase()).orElseThrow(() -> new EntityNotFoundException("City not found"));
 
         if (restaurantDTO.getImage() == null || restaurantDTO.getImage().isBlank())
             restaurantDTO.setImage(imageService.getPlaceholder(ImageType.RESTAURANT ));
@@ -130,6 +130,7 @@ public class RestaurantService {
         }
         else{
             DraftRestaurant draftRestaurant = DraftRestaurant.builder()
+                    .id(UUID.randomUUID())
                     .name(restaurantDTO.getName())
                     .city(city)
                     .tags(restaurantDTO.getTags())
@@ -137,7 +138,7 @@ public class RestaurantService {
                     .userId(userId)
                     .build();
             if (!restaurantDTO.getImage().contains("foodapp/" + ImageType.DRAFT_RESTAURANT)) {
-                String key = ImageType.DRAFT_RESTAURANT + "/" + String.valueOf(restaurantDTO.getId());
+                String key = ImageType.DRAFT_RESTAURANT + "/" + String.valueOf(draftRestaurant.getId());
                 imageService.uploadImage(restaurantDTO.getImage(), key);
                 String imageLink = imageService.getPresignedUrl(key, 10);
                 draftRestaurant.setImage(imageLink);
@@ -150,7 +151,7 @@ public class RestaurantService {
         }
     }
 
-    public RestaurantResponseDTO updateRestaurant(RestaurantRequestDTO restaurantDTO, Long userId) throws Exception {
+    public RestaurantResponseDTO updateRestaurant(RestaurantRequestDTO restaurantDTO, UUID userId) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
@@ -206,7 +207,7 @@ public class RestaurantService {
     public PageResponseDTO<List<RestaurantResponseDTO>> getFavouriteRestaurants(
             String city,
             Pageable pageable,
-            Long userId
+            UUID userId
     ) {
         Page<Restaurant> restaurants = restaurantRepository.getRestaurantsByCIty(city, pageable);
 
@@ -227,7 +228,7 @@ public class RestaurantService {
 
 
     @Transactional
-    public Boolean markRestaurantFavourite(long restaurantId , Long userId){
+    public Boolean markRestaurantFavourite(UUID restaurantId , UUID userId){
 
 
         FavouriteRestaurant favouriteRestaurant = favouriteRestaurantRepository.
@@ -246,7 +247,7 @@ public class RestaurantService {
         return Boolean.TRUE;
    }
 
-    public Boolean unMarkRestaurantFavourite(long restaurantId , Long userId){
+    public Boolean unMarkRestaurantFavourite(UUID restaurantId , UUID userId){
         FavouriteRestaurant favouriteRestaurant = favouriteRestaurantRepository.getFavouriteRestaurantByUserIdAndRestaurantId(userId, restaurantId).
                 orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
         favouriteRestaurantRepository.delete(favouriteRestaurant);
@@ -257,7 +258,7 @@ public class RestaurantService {
         return Boolean.TRUE;
     }
 
-    public List<RestaurantResponseDTO> getDraftRestaurants(Long userId) {
+    public List<RestaurantResponseDTO> getDraftRestaurants(UUID userId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
@@ -276,28 +277,33 @@ public class RestaurantService {
         }).collect(Collectors.toList());
     }
 
-    public Boolean approveDraftRestaurant(Long restaurantId, Long userId) {
+    public Boolean approveDraftRestaurant(UUID restaurantId, UUID userId) throws Exception {
         DraftRestaurant draftRestaurant = draftRestaurantRepository.findById(restaurantId).orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
         Restaurant restaurant;
+        UUID id;
         if (draftRestaurant.getRestaurant() == null) {
+            id = UUID.randomUUID();
             restaurant = Restaurant.builder()
+                    .id(id)
                     .name(draftRestaurant.getName())
                     .city(draftRestaurant.getCity())
                     .description(draftRestaurant.getDescription())
                     .tags(draftRestaurant.getTags())
-                    .image(draftRestaurant.getImage())
                     .cuisine(draftRestaurant.getCuisine())
                     .build();
         } else {
+            id = draftRestaurant.getRestaurant().getId();
             restaurant = draftRestaurant.getRestaurant();
             restaurant.setName(draftRestaurant.getName());
             restaurant.setCity(draftRestaurant.getCity());
             restaurant.setDescription(draftRestaurant.getDescription());
             restaurant.setTags(draftRestaurant.getTags());
-            restaurant.setImage(draftRestaurant.getImage());
             restaurant.setCuisine(draftRestaurant.getCuisine());
 
         }
+        String draftImageKey = ImageType.DRAFT_RESTAURANT + "/" + draftRestaurant.getId() ;
+        String imageKey = ImageType.RESTAURANT + "/" + id ;
+        restaurant.setImage(imageService.replaceImage(draftImageKey, imageKey));
         restaurantRepository.save(restaurant);
         draftRestaurantRepository.delete(draftRestaurant);
         return Boolean.TRUE;

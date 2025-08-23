@@ -12,12 +12,13 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Builder
 @Data
 public class RestaurantRequestDTO {
 
-    public long id;
+    public UUID id;
 
     private String name;
 

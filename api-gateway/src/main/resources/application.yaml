@@ -6,13 +6,13 @@ spring:
     name: api-gateway
 
   datasource:
-    url: jdbc:postgresql://172.25.0.3:5432/foodapp
+    url: jdbc:postgresql://31.97.231.63:5433/foodapp
     username: user
     password: password
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
   sql:
     init:
       mode: never
@@ -25,12 +25,15 @@ spring:
             - id: foodapp
               uri: http://localhost:8081
               predicates:
-                - Path=/foodapp/api/**
+                - Path=/api/foodapp/**
               filters:
-                - StripPrefix=1
+                - RewritePath=/api/foodapp/(?<segment>.*), /api/${segment}
 
 logging:
   level:
     root: INFO
     org.springframework.cloud.gateway: INFO
 
+token:
+  signing:
+    key: mySecretSigningKey123456789012345678901234567890

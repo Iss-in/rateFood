@@ -9,8 +9,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.UUID;
+
 //
-public interface DishRepository extends JpaRepository<Dish, Long> {
+public interface DishRepository extends JpaRepository<Dish, UUID> {
 
     @Query("""
   SELECT d FROM Dish d
@@ -28,7 +30,7 @@ public interface DishRepository extends JpaRepository<Dish, Long> {
             @Param("currentLatitude") Double currentLatitude,
             @Param("currentLongitude") Double currentLongitude,
             @Param("maxDistanceKm") Double maxDistanceKm,
-            @Param("userId") Long userId,
+            @Param("userId") UUID userId,
             Pageable pageable
     );
 
@@ -56,7 +58,7 @@ public interface DishRepository extends JpaRepository<Dish, Long> {
             @Param("currentLatitude") Double currentLatitude,
             @Param("currentLongitude") Double currentLongitude,
             @Param("maxDistanceKm") Double maxDistanceKm,
-            @Param("userId") Long userId,
+            @Param("userId") UUID userId,
             Pageable pageable
     );
 

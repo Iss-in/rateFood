@@ -6,12 +6,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface FavouriteDishRepository extends JpaRepository<FavouriteDish, Long> {
-    Optional<FavouriteDish> findByUserId(Long userId);
+public interface FavouriteDishRepository extends JpaRepository<FavouriteDish, UUID> {
+    Optional<FavouriteDish> findByUserId(UUID userId);
 
-    Optional<FavouriteDish> getFavouriteDishesByUserIdAndDishId(Long userId, long dishId);
+    Optional<FavouriteDish> getFavouriteDishesByUserIdAndDishId(UUID userId, UUID dishId);
 
-    List<FavouriteDish> getFavouriteDishesByUserId(Long userId);
+    List<FavouriteDish> getFavouriteDishesByUserId(UUID userId);
 }

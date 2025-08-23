@@ -7,11 +7,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface DraftDishRepository extends JpaRepository<DraftDish, Long> {
-    List<DraftDish> findByUserId(Long userId);
-    Optional<DraftDish> findByIdAndUserId(Long id, Long userId);
+public interface DraftDishRepository extends JpaRepository<DraftDish, UUID> {
+    List<DraftDish> findByUserId(UUID userId);
+    Optional<DraftDish> findByIdAndUserId(UUID id, UUID userId);
 
 }
 

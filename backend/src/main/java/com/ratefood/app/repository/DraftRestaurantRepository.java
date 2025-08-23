@@ -6,11 +6,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface DraftRestaurantRepository extends JpaRepository<DraftRestaurant, Long> {
-    List<DraftRestaurant> findByUserId(Long userId);
-    Optional<DraftRestaurant> findByIdAndUserId(Long id, Long userId);
+public interface DraftRestaurantRepository extends JpaRepository<DraftRestaurant, UUID> {
+    List<DraftRestaurant> findByUserId(UUID userId);
+    Optional<DraftRestaurant> findByIdAndUserId(UUID id, UUID userId);
 
 }
 

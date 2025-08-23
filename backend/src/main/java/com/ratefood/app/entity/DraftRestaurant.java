@@ -5,10 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Table(name = "draft_restaurant")
 @Data
@@ -18,9 +20,13 @@ import java.util.List;
 @AllArgsConstructor
 public class DraftRestaurant {
     @Id
-    @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+//    @GeneratedValue(generator = "UUID")
+//    @GenericGenerator(
+//            name = "UUID",
+//            strategy = "org.hibernate.id.UUIDGenerator"
+//    )
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
 
     @Column(name="name")
@@ -58,7 +64,7 @@ public class DraftRestaurant {
     private City city;
 
     @Column(name="user_id")
-    private Long userId;
+    private UUID userId;
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "restaurant_id", nullable = true)

@@ -8,8 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,7 +24,7 @@ import java.util.List;
 @AllArgsConstructor
 public class RestaurantResponseDTO {
 
-    private long id;
+    private UUID id;
 
     private String name;
 

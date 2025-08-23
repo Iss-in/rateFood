@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,7 +48,7 @@ public class DishService {
     @Autowired
     private ImageService imageService;
 
-    public DishResponseDTO createDish(DishRequestDTO dto, Long userId) throws Exception {
+    public DishResponseDTO createDish(DishRequestDTO dto, UUID userId) throws Exception {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
@@ -61,6 +62,7 @@ public class DishService {
 
         if(isAdmin) {
             Dish dishEntity = Dish.builder()
+                    .id(UUID.randomUUID())
                     .name(dto.getName())
                     .restaurant(restaurant)
                     .tags(dto.getTags())
@@ -72,7 +74,7 @@ public class DishService {
 
             if (!dto.getImage().contains("foodapp/" + ImageType.DISH)) {
                 //TODO: can compress image to a size ?
-                String key = ImageType.DISH + "/" + String.valueOf(dishCreated.getId());
+                String key = ImageType.DISH + "/" + dishCreated.getId();
                 imageService.uploadImage(dto.getImage(), key);
                 String imageLink = imageService.getPresignedUrl(key, 10);
                 dishCreated.setImage(imageLink);
@@ -84,6 +86,7 @@ public class DishService {
         }
         else{
             DraftDish dishEntity = DraftDish.builder()
+                    .id(UUID.randomUUID())
                     .name(dto.getName())
                     .restaurant(restaurant)
                     .tags(dto.getTags())
@@ -92,7 +95,7 @@ public class DishService {
                     .build();
             if (!dto.getImage().contains("foodapp/" + ImageType.DRAFT_DISH)) {
                 //TODO: can compress image to a size ?
-                String key = ImageType.DRAFT_DISH + "/" + String.valueOf(dto.getId());
+                String key = ImageType.DRAFT_DISH + "/" + dishEntity.getId();
                 imageService.uploadImage(dto.getImage(), key);
                 String imageLink = imageService.getPresignedUrl(key, 10);
                 dishEntity.setImage(imageLink);
@@ -105,7 +108,7 @@ public class DishService {
         }
     }
 
-    public DishResponseDTO updateDish(DishRequestDTO dto, Long userId) throws Exception {
+    public DishResponseDTO updateDish(DishRequestDTO dto, UUID userId) throws Exception {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
@@ -124,7 +127,7 @@ public class DishService {
                     .build();
             if (dto.getImage() != null && !dto.getImage().contains("foodapp/" + ImageType.DISH)) {
                 //TODO: can compress image to a size ?
-                String key = ImageType.DISH + "/" + String.valueOf(dto.getId());
+                String key = ImageType.DISH + "/" + dishEntity.getId();
                 imageService.uploadImage(dto.getImage(), key);
                 String imageLink = imageService.getPresignedUrl(key, 10);
                 dishEntity.setImage(imageLink);
@@ -135,6 +138,7 @@ public class DishService {
         }
         else{
             DraftDish dishEntity = DraftDish.builder()
+                    .id(UUID.randomUUID())
                     .name(dto.getName())
                     .restaurant(restaurant)
                     .tags(dto.getTags())
@@ -144,7 +148,7 @@ public class DishService {
                     .build();
             if (!dto.getImage().contains("foodapp/" + ImageType.DRAFT_DISH)) {
                 //TODO: can compress image to a size ?
-                String key = ImageType.DRAFT_DISH + "/" + String.valueOf(dto.getId());
+                String key = ImageType.DRAFT_DISH + "/" + dishEntity.getId();
                 imageService.uploadImage(dto.getImage(), key);
                 String imageLink = imageService.getPresignedUrl(key, 10);
                 dishEntity.setImage(imageLink);
@@ -168,7 +172,7 @@ public class DishService {
             Double maxDistanceKm,
             Boolean favourites,
             Pageable pageable,
-            Long userId
+            UUID userId
     ) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -199,7 +203,7 @@ public class DishService {
     public PageResponseDTO<List<DishResponseDTO>> getFavouriteDishes(
             String city,
             Pageable pageable,
-            Long userId
+            UUID userId
     ) {
 //        Page<Dish> dishes = dishRepository.getDishesByCIty(city, pageable);
         Page<Dish> dishes = dishRepository.findAll( pageable);
@@ -219,7 +223,7 @@ public class DishService {
         return dto;
     }
 
-    public Boolean markDishFavourite(long dishId , Long userId){
+    public Boolean markDishFavourite(UUID dishId , UUID userId){
         FavouriteDish favouriteDish = favouriteDishRepository.getFavouriteDishesByUserIdAndDishId(userId, dishId).orElseGet(() -> {
             FavouriteDish newFavourite = FavouriteDish.builder()
                     .dish(dishRepository.findById(dishId).orElseThrow(() -> new EntityNotFoundException("Dish not found")))
@@ -235,7 +239,7 @@ public class DishService {
         return Boolean.TRUE;
     }
 
-    public Boolean unMarkDishFavourite(long dishId , Long userId){
+    public Boolean unMarkDishFavourite(UUID dishId , UUID userId){
         FavouriteDish favouriteDish = favouriteDishRepository.getFavouriteDishesByUserIdAndDishId(userId, dishId).
                 orElseThrow(() -> new EntityNotFoundException("Dish not found"));
         favouriteDishRepository.delete(favouriteDish);
@@ -246,7 +250,7 @@ public class DishService {
         return Boolean.TRUE;
     }
 
-    public List<DishResponseDTO> getDraftDishes(Long userId){
+    public List<DishResponseDTO> getDraftDishes(UUID userId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
@@ -268,30 +272,34 @@ public class DishService {
         return dto;
     }
 
-    public Boolean approveDraftDish(Long id, Long userId){
-        DraftDish draftDish = draftDishRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Draft dish not found"));
+    public Boolean approveDraftDish(UUID dishId, UUID userId) throws Exception {
+        DraftDish draftDish = draftDishRepository.findById(dishId).orElseThrow(() -> new EntityNotFoundException("Draft dish not found"));
 //        if(draftDish.getUserId() != userId){
 //            throw new RuntimeException("You can only approve your own draft dishes");
 //        }
+        Dish dish; UUID id;
         if(draftDish.getDish() == null) {
-            Dish dish = Dish.builder()
+            id = UUID.randomUUID();
+            dish = Dish.builder()
+                    .id(id)
                     .name(draftDish.getName())
                     .restaurant(draftDish.getRestaurant())
                     .tags(draftDish.getTags())
                     .description(draftDish.getDescription())
-                    .image(draftDish.getImage())
                     .build();
-            dishRepository.save(dish);
         }
         else{
-            Dish dish = draftDish.getDish();
+            id = draftDish.getDish().getId();
+            dish = draftDish.getDish();
             dish.setName(draftDish.getName());
             dish.setTags(draftDish.getTags());
             dish.setDescription(draftDish.getDescription());
-            dish.setImage(draftDish.getImage());
             dish.setRestaurant(draftDish.getRestaurant());
-            dishRepository.save(dish);
         }
+        String draftImageKey = ImageType.DRAFT_DISH + "/" + draftDish.getId() ;
+        String imageKey = ImageType.DISH + "/" + id ;
+        dish.setImage(imageService.replaceImage(draftImageKey, imageKey));
+        dishRepository.save(dish);
         draftDishRepository.delete(draftDish);
         return Boolean.TRUE;
     }

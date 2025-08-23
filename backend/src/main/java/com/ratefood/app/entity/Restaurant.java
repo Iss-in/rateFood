@@ -3,10 +3,12 @@ package com.ratefood.app.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 @Builder
@@ -18,10 +20,13 @@ import java.util.List;
 public class Restaurant {
 
     @Id
-    @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
+//    @GeneratedValue(generator = "UUID")
+//    @GenericGenerator(
+//            name = "UUID",
+//            strategy = "org.hibernate.id.UUIDGenerator"
+//    )
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(name="name")
     private String name;

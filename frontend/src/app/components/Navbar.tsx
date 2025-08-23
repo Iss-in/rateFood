@@ -266,30 +266,32 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
                         )}
 
                         {/* Right: Add buttons + Location - Always at extreme right */}
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 ">
                             {/* Add Dish Button - Show when on home page, dishes tab, and user logged in - Hidden on mobile */}
-                            {pathname === '/' && selectedTab === 'dishes' && session.isLoggedIn && (
-                                <button
-                                    data-slot="button"
-                                    className="hidden md:inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
-                                    onClick={() => setAddDishOpen(true)}
-                                >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add Dish
-                                </button>
-                            )}
+                            <div className="max-w-50 min-w-50 flex justify-end">
+                                {pathname === '/' && selectedTab === 'dishes' && session.isLoggedIn && (
+                                    <button
+                                        data-slot="button"
+                                        className="hidden md:inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
+                                        onClick={() => setAddDishOpen(true)}
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add Dish
+                                    </button>
+                                )}
 
-                            {/* Add Restaurant Button - Show when on home page, restaurants tab, and user logged in - Hidden on mobile */}
-                            {pathname === '/' && selectedTab === 'restaurants' && session.isLoggedIn && (
-                                <button
-                                    data-slot="button"
-                                    className="hidden md:inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
-                                    onClick={() => setAddRestaurantOpen(true)}
-                                >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add Restaurant
-                                </button>
-                            )}
+                                {/* Add Restaurant Button - Show when on home page, restaurants tab, and user logged in - Hidden on mobile */}
+                                {pathname === '/' && selectedTab === 'restaurants' && session.isLoggedIn && (
+                                    <button
+                                        data-slot="button"
+                                        className="hidden md:inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
+                                        onClick={() => setAddRestaurantOpen(true)}
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add Restaurant
+                                    </button>
+                                )}
+                            </div>
 
                             {/* City Selector - Only show on home page */}
                             {pathname === '/' && (

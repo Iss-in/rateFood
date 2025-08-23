@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class DishConverter {
@@ -49,7 +50,7 @@ public class DishConverter {
         return responseDto;
     }
 
-    public DishResponseDTO fromDishtoDishResponseDTO(Dish dish, Long userId) throws Exception {
+    public DishResponseDTO fromDishtoDishResponseDTO(Dish dish, UUID userId) throws Exception {
         DishResponseDTO responseDto = DishResponseDTO.builder()
                 .name(dish.getName())
                 .id(dish.getId())
@@ -60,7 +61,7 @@ public class DishConverter {
                 .image(imageService.getPresignedUrl(ImageType.DISH + "/" + String.valueOf(dish.getId()) , 100))
                 .favoriteCount(dish.getFavoriteCount())
                 .build();
-        if(userId != 0) {
+        if(userId != null) {
             List<FavouriteDish> favouriteDishes = favouriteDishRepository.getFavouriteDishesByUserId(userId);
             if (favouriteDishes.stream().anyMatch(favDish -> favDish.getDish().getId() == dish.getId())) {
                 responseDto.setIsFavourite(true);
