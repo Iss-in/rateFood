@@ -239,7 +239,7 @@ export function RestaurantCard({
     <>
       <Card className="overflow-hidden shadow hover:shadow-md transition-shadow gap-0">
         <CardHeader className="p-0">
-          <div className="relative w-full h-55">
+          <div className="relative w-full min-h-55">
             <ImageWithFallback
               src={restaurant.image}
               alt={restaurant.name}

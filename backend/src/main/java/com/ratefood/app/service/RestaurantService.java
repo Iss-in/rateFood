@@ -183,7 +183,7 @@ public class RestaurantService {
         }
         else{
             DraftRestaurant draftRestaurant = DraftRestaurant.builder()
-//                    .id(restaurantDTO.getId())
+                    .id(UUID.randomUUID())
                     .name(restaurantDTO.getName())
                     .city(city)
                     .tags(restaurantDTO.getTags())
@@ -192,12 +192,14 @@ public class RestaurantService {
                     .restaurant(restaurantRepository.findById(restaurantDTO.getId()).orElseThrow(() -> new EntityNotFoundException("Restaurant not found")))
                     .userId(userId)
                     .build();
-            if (restaurantDTO.getImage() != null && !restaurantDTO.getImage().contains("foodapp/" + ImageType.DRAFT_RESTAURANT)) {
+            if (!restaurantDTO.getImage().contains("foodapp/" + ImageType.DRAFT_RESTAURANT)) {
                 String key = ImageType.DRAFT_RESTAURANT + "/" + String.valueOf(restaurantDTO.getId());
                 imageService.uploadImage(restaurantDTO.getImage(), key);
                 String imageLink = imageService.getPresignedUrl(key, 10);
                 draftRestaurant.setImage(imageLink);
             }
+            else
+                draftRestaurant.setImage(restaurantDTO.getImage());
             DraftRestaurant draftRestaurantCreated = draftRestaurantRepository.save(draftRestaurant);
             RestaurantResponseDTO responseDto = restaurantConverter.fromDraftRestaurantToRestaurantResponseDTO(draftRestaurantCreated);
             return responseDto;
