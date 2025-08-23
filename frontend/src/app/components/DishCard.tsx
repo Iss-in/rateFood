@@ -143,7 +143,9 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
     setIsEditDialogOpen(true);
   };
 
-  const handleEditSuccess = async (updatedDishData: Omit<Dish, "id" | "favoriteCount">) => {
+// In DishCard.tsx, update the handleEditSuccess function:
+
+  const handleEditSuccess = async (updatedDishData: Omit<Dish, "favoriteCount">) => {
     try {
       // Make API call to update the dish
       const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/updateDish`;
@@ -153,14 +155,13 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedDishData),
+        body: JSON.stringify(updatedDishData), // This now includes the id
       });
 
       if (response.ok) {
         const updatedDish: Dish = {
           ...dish,
           ...updatedDishData,
-          id: dish.id,
           favoriteCount: dish.favoriteCount
         };
 
@@ -172,8 +173,8 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
             </div>
           ));
           setDishes((prevDishes: Dish[]) =>
-            prevDishes.map(dish =>
-              dish.id === updatedDish.id ? updatedDish : dish
+            prevDishes.map(d =>
+              d.id === updatedDish.id ? updatedDish : d
             )
           );
         }
@@ -182,7 +183,7 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
         if (session.roles?.includes('USER')) {
           toast.success("Update Request is sent for approval")
           setDishes((prevDishes: Dish[]) =>
-            prevDishes.filter(dish => dish.id !== updatedDish.id)
+            prevDishes.filter(d => d.id !== updatedDish.id)
           );
         }
 

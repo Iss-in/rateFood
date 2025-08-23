@@ -20,7 +20,7 @@ interface NavbarProps {
   selectedTab: string;
   onTabChange: (tab: string) => void;
   onAddDish: (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
-  onAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating">) => void;
+  onAddRestaurant: (newRestaurant: Omit<Restaurant, "rating"| "favoriteCount">) => void;
 }
 
 export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, onAddDish, onAddRestaurant  }: NavbarProps) {

@@ -140,7 +140,7 @@ export function RestaurantCard({
     setIsEditDialogOpen(true);
   };
 
-  const handleEditSuccess = async (updatedRestaurantData: Omit<Restaurant, "id" | "favoriteCount">) => {
+  const handleEditSuccess = async (updatedRestaurantData: Omit<Restaurant,  "favoriteCount">) => {
     try {
       const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/updateRestaurant`;
 
@@ -149,8 +149,7 @@ export function RestaurantCard({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedRestaurantData),
-      });
+      body: JSON.stringify({ ...updatedRestaurantData, city: selectedCity, id:updatedRestaurantData.id }),      });
 
       if (response.ok) {
         const updatedRestaurant: Restaurant = {

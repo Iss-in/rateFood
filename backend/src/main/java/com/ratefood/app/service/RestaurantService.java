@@ -182,10 +182,11 @@ public class RestaurantService {
         }
         else{
             DraftRestaurant draftRestaurant = DraftRestaurant.builder()
-                    .id(restaurantDTO.getId())
+//                    .id(restaurantDTO.getId())
                     .name(restaurantDTO.getName())
                     .city(city)
                     .tags(restaurantDTO.getTags())
+                    .cuisine(restaurantDTO.getCuisine())
                     .description(restaurantDTO.getDescription())
                     .restaurant(restaurantRepository.findById(restaurantDTO.getId()).orElseThrow(() -> new EntityNotFoundException("Restaurant not found")))
                     .userId(userId)
@@ -278,7 +279,7 @@ public class RestaurantService {
     public Boolean approveDraftRestaurant(Long restaurantId, Long userId) {
         DraftRestaurant draftRestaurant = draftRestaurantRepository.findById(restaurantId).orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
         Restaurant restaurant;
-        if (draftRestaurant.getRestaurant() != null) {
+        if (draftRestaurant.getRestaurant() == null) {
             restaurant = Restaurant.builder()
                     .name(draftRestaurant.getName())
                     .city(draftRestaurant.getCity())

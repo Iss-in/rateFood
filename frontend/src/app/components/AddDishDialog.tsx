@@ -15,7 +15,7 @@ import toast from 'react-hot-toast';
 
 interface AddDishDialogProps {
   onAddDish: (dish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
-  onEditDish?: (dish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
+  onEditDish?: (dish: Omit<Dish, "rating" | "favoriteCount">) => void; // Remove "id" from Omit for edit
   selectedCity: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -209,11 +209,9 @@ export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange, selec
   const setIsOpen = isControlled ? onOpenChange : setInternalOpen;
   
   const isEditMode = dishToEdit !== null;
-  
-  // If controlled (open/onOpenChange provided), don't render the trigger button
-  // This prevents multiple buttons when used in controlled mode
 
   const [formData, setFormData] = useState({
+    id: "", // Add id field
     name: "",
     restaurant: "",
     description: "",
@@ -231,17 +229,15 @@ export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange, selec
     }
     if (formData.name && formData.restaurant) {
       if (isEditMode && onEditDish) {
+        // For edit mode, include the id in the data
         onEditDish(formData);
       } else {
-        onAddDish({
-          name: formData.name,
-          restaurant: formData.restaurant,
-          description: formData.description,
-          tags: formData.tags,
-          image: formData.image,
-        });
+        // For add mode, exclude the id from the data
+        const { id, ...addData } = formData;
+        onAddDish(addData);
       }
       setFormData({
+        id: "",
         name: "",
         restaurant: "",
         description: "",
@@ -265,10 +261,18 @@ export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange, selec
 
   useEffect(() => {
     if (dishToEdit) {
-      setFormData({ ...dishToEdit });
+      setFormData({
+        id: dishToEdit.id, // Include id for edit mode
+        name: dishToEdit.name,
+        restaurant: dishToEdit.restaurant,
+        description: dishToEdit.description,
+        tags: dishToEdit.tags,
+        image: dishToEdit.image
+      });
       setIsRestaurantValid(true);
     } else {
       setFormData({
+        id: "", // Empty id for add mode
         name: "",
         restaurant: "",
         description: "",

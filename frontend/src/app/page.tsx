@@ -189,7 +189,7 @@ export default function App() {
     );
   }
 
-  function AddRestaurantDialogFloatingTrigger({ onAddRestaurant }: { onAddRestaurant: (newRestaurant: Omit<Restaurant, "id" | "rating">) => void }) {
+  function AddRestaurantDialogFloatingTrigger({ onAddRestaurant }: { onAddRestaurant: (newRestaurant: Omit<Restaurant,  "rating" | "favoriteCount">) => void }) {
     const [open, setOpen] = useState(false);
     
     return (
@@ -272,6 +272,7 @@ export default function App() {
                       onRemove={() => handleRemoveRestaurant(restaurant.id)}
                       onFavouriteRemove={() => {} }
                       showMenu={session.token ? true: false}
+                      selectedCity={selectedCity}
                     />
                   ))}
                 </div>

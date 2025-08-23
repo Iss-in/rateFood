@@ -11,7 +11,7 @@ interface EditRestaurantDialogProps {
   restaurant: Restaurant;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onEditRestaurant: (restaurant: Omit<Restaurant, "id" | "rating" | "favoriteCount">) => void;
+  onEditRestaurant: (restaurant: Omit<Restaurant, "rating" | "favoriteCount">) => void;
 }
 
 export function EditRestaurantDialog({ 
@@ -21,6 +21,7 @@ export function EditRestaurantDialog({
   onEditRestaurant 
 }: EditRestaurantDialogProps) {
   const [formData, setFormData] = useState({
+    id: restaurant.id,
     name: restaurant.name,
     cuisine: restaurant.cuisine,
     description: restaurant.description,
@@ -33,6 +34,7 @@ export function EditRestaurantDialog({
   useEffect(() => {
     if (open && restaurant) {
       setFormData({
+        id: restaurant.id,
         name: restaurant.name,
         cuisine: restaurant.cuisine,
         description: restaurant.description,
