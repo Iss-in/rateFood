@@ -39,7 +39,9 @@ interface AppContextType {
   // setSubmittedDishes: (dishes: Dish[]) => void;
     setSubmittedDishes: React.Dispatch<React.SetStateAction<Dish[]>>;
   submittedRestaurants: Restaurant[];
-  setSubmittedRestaurants: (restaurants: Restaurant[]) => void;
+  // setSubmittedRestaurants: (restaurants: Restaurant[]) => void;
+    setSubmittedRestaurants: React.Dispatch<React.SetStateAction<Restaurant[]>>;
+
   fetchSubmittedRequests: () => Promise<void>;
   loadingSubmittedRequests: boolean;
   setLoadingSubmittedRequests: (loading: boolean) => void;
@@ -157,10 +159,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       const createdRestaurant: Restaurant = await response.json();
-      console.log('Created restaurant:', createdRestaurant);
-      
-      // Use the server response if available, otherwise use local restaurant
-      setRestaurants(prev => [createdRestaurant || restaurant, ...prev]);
+      // Use the server response if available, otherwise use local dish
+      if (session.roles?.includes('ADMIN')) {
+        setRestaurants(prev => [createdRestaurant || restaurant, ...prev]);
+        toast.success('New Restaurant Added', createdRestaurant);
+      }
+      if (session.roles?.includes('USER')) {
+        // setDishes(prev => [createdDish || dish, ...prev]);
+        toast.success('Draft Restaurant Request added', createdRestaurant);
+      }
+
     } catch (error) {
       console.error('Failed to add restaurant:', error);
       // Still add to local state as fallback
@@ -202,15 +210,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const dishesResponse = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/dish/draft`);
       if (dishesResponse.ok) {
         const dishesData = await dishesResponse.json();
-        console.log(dishesData.data);
-        setSubmittedDishes(dishesData.data || dishesData || []);
+        console.log(dishesData);
+        setSubmittedDishes( dishesData || []);
       }
 
       // Fetch submitted restaurants
-      const restaurantsResponse = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/user/submissions/restaurants`);
+      const restaurantsResponse = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/foodapp/restaurant/draft`);
+      // console.log(restaurantsResponse)
       if (restaurantsResponse.ok) {
         const restaurantsData = await restaurantsResponse.json();
-        setSubmittedRestaurants(restaurantsData.data || []);
+        console.log(restaurantsData);
+        setSubmittedRestaurants(restaurantsData || []);
       }
     } catch (error) {
       console.error('Failed to fetch submitted requests:', error);

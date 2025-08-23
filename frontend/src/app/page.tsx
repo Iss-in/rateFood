@@ -169,7 +169,7 @@ export default function App() {
     const [open, setOpen] = useState(false);
     return (
       <>
-        {open && (
+        {/* {open && (
           <AddDishDialog open={open} onOpenChange={setOpen} onAddDish={onAddDish} selectedCity={selectedCity} />
         )}
         <div className="fixed bottom-4 right-4 z-50 block sm:hidden">
@@ -181,7 +181,10 @@ export default function App() {
           >
             <Plus size={24} />
           </button>
-        </div>
+        </div> */}
+        {open && (
+          <AddDishDialog open={open} onOpenChange={setOpen} onAddDish={onAddDish} selectedCity={selectedCity} />
+        )}
       </>
     );
   }
@@ -195,14 +198,14 @@ export default function App() {
           <AddRestaurantDialog open={open} onOpenChange={setOpen} onAddRestaurant={onAddRestaurant} />
         )}
         <div className="fixed bottom-4 right-4 z-50 block sm:hidden">
-          <button
+          {/* <button
             onClick={() => setOpen(true)}
             className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg flex items-center justify-center"
             aria-label="Add Restaurant"
             title="Add Restaurant"
           >
             <Plus size={24} />
-          </button>
+          </button> */}
         </div>
       </>
     );
@@ -268,6 +271,7 @@ export default function App() {
                       // onRatingChange={handleRestaurantRating}
                       onRemove={() => handleRemoveRestaurant(restaurant.id)}
                       onFavouriteRemove={() => {} }
+                      showMenu={session.token ? true: false}
                     />
                   ))}
                 </div>

@@ -39,7 +39,5 @@ public class RestaurantRequestDTO {
 
     private String city;
 
-    @Builder.Default
-    private boolean isDraft = false;
 
 }

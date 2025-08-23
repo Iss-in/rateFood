@@ -2,6 +2,7 @@ package com.ratefood.app.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -56,4 +57,8 @@ public class Restaurant {
     @JoinColumn(name = "city_id", nullable = false)
     private City city;
 
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    @Builder.Default
+    private int favoriteCount = 0;
 }

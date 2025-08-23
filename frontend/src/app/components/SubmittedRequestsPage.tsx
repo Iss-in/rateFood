@@ -85,6 +85,7 @@ export function SubmittedRequestsPage() {
                 key={restaurant.id}
                 restaurant={restaurant}
                 onFavouriteRemove={() => { }}
+                  isSubmittedPage={isSubmittedPage}
                 // onRatingChange={(restaurant.id) => { }}
                 onRemove={() => { }}
               />

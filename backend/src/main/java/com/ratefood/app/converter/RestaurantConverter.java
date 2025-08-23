@@ -35,6 +35,7 @@ public class RestaurantConverter {
                 .longitude(restaurant.getLongitude())
                 .image(restaurant.getImage())
                 .city(restaurant.getCity())
+                .favoriteCount(restaurant.getFavoriteCount())
                 .build();
         return responseDto;
     }
@@ -68,7 +69,13 @@ public class RestaurantConverter {
 //                .image(restaurant.getImage())
                 .image(imageService.getPresignedUrl(ImageType.RESTAURANT + "/" + String.valueOf(restaurant.getId()) , 100))
                 .city(restaurant.getCity())
+                .favoriteCount(restaurant.getFavoriteCount())
                 .build();
+//        if(restaurant.getImage() != null && !restaurant.getImage().isBlank())
+//            responseDto.setImage(restaurant.getImage());
+//        else
+//        responseDto.setImage(imageService.getPresignedUrl(ImageType.DRAFT_RESTAURANT + "/" + String.valueOf(restaurant.getId()) , 100));
+
         if(userId != 0) {
             List<FavouriteRestaurant> favouriteDishes = favouriteRestaurantRepository.getFavouriteRestaurantsByUserId(userId);
             if (favouriteDishes.stream().anyMatch(favRestaurant -> favRestaurant.getRestaurant().getId() == restaurant.getId())) {

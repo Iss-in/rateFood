@@ -2,6 +2,7 @@ package com.ratefood.app.controller;
 
 import com.ratefood.app.dto.request.RestaurantRequestDTO;
 import com.ratefood.app.dto.request.RestaurantRequestDTO;
+import com.ratefood.app.dto.response.DishResponseDTO;
 import com.ratefood.app.dto.response.RestaurantResponseDTO;
 import com.ratefood.app.dto.response.PageResponseDTO;
 import com.ratefood.app.dto.response.RestaurantResponseDTO;
@@ -53,7 +54,7 @@ public class RestaurantController {
     @PostMapping("/restaurant/draft")
     public ResponseEntity<RestaurantResponseDTO> addDraftRestaurant(@RequestBody RestaurantRequestDTO restaurantDTO,
                                                                     @RequestHeader("X-User-Id") Long userId) throws Exception {
-        restaurantDTO.setDraft(false);
+//        restaurantDTO.setDraft(false);
         RestaurantResponseDTO newRestaurant = restaurantService.addRestaurant(restaurantDTO, userId);
         return new ResponseEntity<>(newRestaurant, HttpStatus.CREATED);
     }
@@ -123,6 +124,19 @@ public class RestaurantController {
         restaurantRepository.delete(restaurant);
         return new ResponseEntity<>(true, HttpStatus.CREATED);
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @GetMapping("/restaurant/draft")
+    public ResponseEntity<List<RestaurantResponseDTO>> getDraftRestaurants(
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "0") String userId
+    ){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("Authenticated user authorities: {}", authentication.getAuthorities());
+
+        List<RestaurantResponseDTO> dishes = restaurantService.getDraftRestaurants(Long.parseLong(userId));
+        return new ResponseEntity<>(dishes, HttpStatus.ACCEPTED);
+    }
+
 
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @DeleteMapping("/restaurant/draft/{id}")

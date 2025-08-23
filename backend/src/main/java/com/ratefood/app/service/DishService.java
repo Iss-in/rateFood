@@ -142,13 +142,15 @@ public class DishService {
                     .userId(userId)
                     .dish(dish)
                     .build();
-            if (dto.getImage() != null && !dto.getImage().contains("foodapp/" + ImageType.DRAFT_DISH)) {
+            if (!dto.getImage().contains("foodapp/" + ImageType.DRAFT_DISH)) {
                 //TODO: can compress image to a size ?
                 String key = ImageType.DRAFT_DISH + "/" + String.valueOf(dto.getId());
                 imageService.uploadImage(dto.getImage(), key);
                 String imageLink = imageService.getPresignedUrl(key, 10);
                 dishEntity.setImage(imageLink);
             }
+            else
+                dishEntity.setImage(dto.getImage());
             DraftDish dishCreated  = draftDishRepository.save(dishEntity);
             DishResponseDTO responseDto = dishConverter.fromDraftDishtoDishResponseDTO(dishCreated);
             return responseDto;

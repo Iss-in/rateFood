@@ -28,9 +28,36 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> , 
             @Param("currentLatitude") Double currentLatitude,
             @Param("currentLongitude") Double currentLongitude,
             @Param("maxDistanceKm") Double maxDistanceKm,
+            Long userId,
             Pageable pageable
     );
 
+
+
+    @Query("""
+      SELECT r from Restaurant r
+      JOIN r.city c
+      WHERE (:name IS NULL OR :name = '' OR LOWER(r.name) LIKE LOWER(CONCAT('%', :name, '%')))
+        AND LOWER(c.name) = LOWER(:city)
+        AND NOT EXISTS (
+            SELECT 1 FROM DraftRestaurant dr
+            WHERE dr.userId = :userId
+              AND dr.restaurant IS NOT NULL
+              AND dr.restaurant.id = r.id
+
+        )
+    """)
+    Page<Restaurant> getNonDraftDishes(
+            @Param("name") String name,
+            @Param("city") String city,
+            @Param("minRating") Float minRating,
+            @Param("maxRating") Float maxRating,
+            @Param("currentLatitude") Double currentLatitude,
+            @Param("currentLongitude") Double currentLongitude,
+            @Param("maxDistanceKm") Double maxDistanceKm,
+            @Param("userId") Long userId,
+            Pageable pageable
+    );
 
     @Query("""
   SELECT r FROM Restaurant r

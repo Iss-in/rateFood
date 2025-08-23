@@ -1,52 +1,111 @@
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { RatingComponent } from "./RatingComponent";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { useSession } from "../contexts/SessionContext";
-import { Heart } from "lucide-react";
-import { useState } from "react";
+import { useSession, SessionContextType } from "../contexts/SessionContext";
+import { Heart, Pencil, Check, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
 import { fetchWithAuth } from "@/lib/api";
 import ActionMenu from "./ActionMenu";
+import { AddRestaurantDialog } from "./AddRestaurantDialog";
+import { useAppContext } from '@/app/contexts/AppContext';
 
 export interface Restaurant {
   id: string;
   name: string;
   cuisine: string;
   description: string;
-  // rating: number;
   tags: string[];
   image: string;
   isFavourite?: boolean;
-  // location: string;
-  // distance: number;
-  // hours: string;ad
-  // phone: string;
-  // priceRange: string;
+  favoriteCount: number;
 }
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
-  // onRatingChange: (restaurantId: string, rating: number) => void;
   onRemove: () => void;
   onFavouriteRemove: () => void;
-
+  onUpdate?: (updatedRestaurant: Restaurant) => void;
+  selectedCity: string;
+  showMenu: boolean;
+  isSubmittedPage?: boolean;
 }
 
 export function RestaurantCard({
   restaurant,
-  // onRatingChange,
   onRemove,
   onFavouriteRemove,
+  onUpdate,
+  selectedCity,
+  showMenu,
+  isSubmittedPage = false,
 }: RestaurantCardProps) {
-  const { session } = useSession();
-  // const [liked, setLiked] = useState(false);
+  const { session }: SessionContextType = useSession();
+  const { setRestaurants, submittedRestaurants, setSubmittedRestaurants } = useAppContext();
+
   const [isFavourite, setIsFavourite] = useState(restaurant.isFavourite ?? false);
+  const [favoriteCount, setFavoriteCount] = useState(restaurant.favoriteCount);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  const handleApprove = async () => {
+    console.log("Approve button clicked for restaurant:", restaurant.id);
 
-    const onDelete = async () => {
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/restaurant/draft/${restaurant.id}`;
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.token}`,
+        },
+      });
+
+      if (response.ok) {
+        setSubmittedRestaurants(prevRestaurants =>
+          prevRestaurants.filter(r => r.id !== restaurant.id)
+        );
+        toast.success("Restaurant approved successfully!");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to approve restaurant.");
+      }
+    } catch (error) {
+      console.error("Error approving restaurant:", error);
+      toast.error("Something went wrong while approving restaurant.");
+    }
+  };
+
+  const handleReject = async () => {
+    console.log("Reject button clicked for restaurant:", restaurant.name);
+
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/restaurant/draft/${restaurant.id}`;
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.token}`,
+        },
+      });
+
+      if (response.ok) {
+        setSubmittedRestaurants(prevRestaurants =>
+          prevRestaurants.filter(r => r.id !== restaurant.id)
+        );
+        toast.success("Restaurant rejected successfully!");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to reject restaurant.");
+      }
+    } catch (error) {
+      console.error("Error rejecting restaurant:", error);
+      toast.error("Something went wrong while rejecting restaurant.");
+    }
+  };
+
+  const onDelete = async () => {
     if (!session.token) {
-      toast.error("You must be logged in to delete a Restaurant.");
+      toast.error("You must be logged in to delete a restaurant.");
       return;
     }
 
@@ -56,12 +115,12 @@ export function RestaurantCard({
       const response = await fetchWithAuth(url, {
         method: "DELETE",
       });
-      
+
       if (response.ok) {
         toast.success(t => (
-            <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
-              Restaurant deleted successfully!
-            </div>
+          <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+            Restaurant deleted successfully!
+          </div>
         ));
         onRemove();
       } else {
@@ -73,10 +132,67 @@ export function RestaurantCard({
     }
   }
 
-  const handlePencilClick = () => {
-    console.log("edit clicked")
-  }
+  const handleEdit = () => {
+    if (!session.token) {
+      toast.error("You must be logged in to edit a restaurant.");
+      return;
+    }
+    setIsEditDialogOpen(true);
+  };
 
+  const handleEditSuccess = async (updatedRestaurantData: Omit<Restaurant, "id" | "favoriteCount">) => {
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/updateRestaurant`;
+
+      const response = await fetchWithAuth(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedRestaurantData),
+      });
+
+      if (response.ok) {
+        const updatedRestaurant: Restaurant = {
+          ...restaurant,
+          ...updatedRestaurantData,
+          id: restaurant.id,
+          favoriteCount: restaurant.favoriteCount
+        };
+
+        if (session.roles?.includes('ADMIN')) {
+          toast.success(t => (
+            <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+              Restaurant updated successfully!
+            </div>
+          ));
+          setRestaurants((prevRestaurants: Restaurant[]) =>
+            prevRestaurants.map(r =>
+              r.id === updatedRestaurant.id ? updatedRestaurant : r
+            )
+          );
+        }
+
+        if (session.roles?.includes('USER')) {
+          toast.success("Update Request is sent for approval")
+          setRestaurants((prevRestaurants: Restaurant[]) =>
+            prevRestaurants.filter(r => r.id !== updatedRestaurant.id)
+          );
+        }
+
+        setIsEditDialogOpen(false);
+        if (onUpdate) {
+          onUpdate(updatedRestaurant);
+        }
+
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to update the restaurant");
+      }
+    } catch (error) {
+      toast.error(`${error} error occurred. Please try again.`);
+    }
+  };
 
   const handleFavouriteToggle = async () => {
     if (!session.token) {
@@ -90,112 +206,130 @@ export function RestaurantCard({
     try {
       const response = await fetchWithAuth(url, {
         method: "POST",
-        // headers: {
-        //   Authorization: `Bearer ${session.token}`,
-        // },
       });
 
       if (response.ok) {
-        setIsFavourite(!isFavourite);
         if (isFavourite) {
-          onFavouriteRemove(); // Call to remove dish from parent's state on unfavourite
+          setIsFavourite(false);
+          setFavoriteCount((prev) => Math.max(0, prev - 1));
+          onFavouriteRemove();
+          toast.success(t => (
+            <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+              Restaurant unfavourited successfully!
+            </div>
+          ));
+        } else {
+          setIsFavourite(true);
+          setFavoriteCount((prev) => prev + 1);
+          toast.success(t => (
+            <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+              Restaurant Favourited successfully!
+            </div>
+          ));
         }
-        toast.success(
-            `Restaurant ${
-                isFavourite ? "unfavourited" : "favourited"
-            } successfully!`
-        );
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "Failed to update favourite status.");
       }
     } catch (error) {
-      toast.error(`${error} occurred. Please try again.`);
+      toast.error(`${error} error occurred. Please try again.`);
     }
   };
+
   return (
-    <Card className="overflow-hidden shadow hover:shadow-md transition-shadow gap-0">
-      <CardHeader className="p-0">
-        <div className="relative w-full h-55">
-          <ImageWithFallback
-            src={restaurant.image}
-            alt={restaurant.name}
-            className="object-cover"
-          />
-          {session.isLoggedIn && (
-            <div
-              className="absolute top-2 right-2 bg-white rounded-full p-1.5 cursor-pointer"
-              onClick={handleFavouriteToggle}
-            >
-              <Heart
-                className={`w-6 h-6 ${
-                    isFavourite ? "text-red-500 fill-current" : "text-gray-500"
-                }`}
-              />
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="px-4">
-        <div className="space-y-1">
-          <div className="flex justify-between items-start space-y-0">
-            <div>
-              <h3 className="font-semibold">{restaurant.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                {restaurant.cuisine}
-              </p>
-            </div>
-
-            <div>
-              <ActionMenu onEdit={handlePencilClick} onDelete={onDelete} />
-              {/* <ActionMenu onDelete={onDelete}  /> */}
-            </div>
-          </div>
-
-          <p className="text-sm text-gray-600 line-clamp-2">
-            {restaurant.description}
-          </p>
-
-          {/*<div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">*/}
-          {/*  <div className="flex items-center space-x-1">*/}
-          {/*    <MapPin className="h-3 w-3" />*/}
-          {/*    <span>{restaurant.distance} mi</span>*/}
-          {/*  </div>*/}
-          {/*  <div className="flex items-center space-x-1">*/}
-          {/*    <Clock className="h-3 w-3" />*/}
-          {/*    <span>{restaurant.hours}</span>*/}
-          {/*  </div>*/}
-          {/*</div>*/}
-
-          {/*<div className="flex items-center justify-between">*/}
-          {/*  <span className="font-medium text-green-600">{restaurant.priceRange}</span>*/}
-          {/*  <a*/}
-          {/*    href={`tel:${restaurant.phone}`}*/}
-          {/*    className="flex items-center space-x-1 text-sm text-muted-foreground hover:text-primary"*/}
-          {/*  >*/}
-          {/*    <Phone className="h-3 w-3" />*/}
-          {/*    <span>{restaurant.phone}</span>*/}
-          {/*  </a>*/}
-          {/*</div>*/}
-
-          <div className="flex flex-wrap gap-1">
-            {restaurant.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} className="text-xs ">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-
-          {/* <div className="pt-2">
-            <RatingComponent
-              currentRating={restaurant.rating}
-              onRatingChange={(rating) =>
-                onRatingChange(restaurant.id, rating)
-              }
+    <>
+      <Card className="overflow-hidden shadow hover:shadow-md transition-shadow gap-0">
+        <CardHeader className="p-0">
+          <div className="relative w-full h-55">
+            <ImageWithFallback
+              src={restaurant.image}
+              alt={restaurant.name}
+              className="object-cover"
             />
-          </div> */}
-        </div>
-      </CardContent>
-    </Card>
+            {isSubmittedPage && (
+              <>
+                {session.roles?.includes('ADMIN') && (
+                  <>
+                    <div
+                      className="absolute top-2 left-2 bg-green-500 hover:bg-green-600 rounded-full p-1.5 cursor-pointer shadow-md transition-colors"
+                      onClick={handleApprove}
+                    >
+                      <Check className="w-5 h-5 text-white" />
+                    </div>
+                    <div
+                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 rounded-full p-1.5 cursor-pointer shadow-md transition-colors"
+                      onClick={handleReject}
+                    >
+                      <X className="w-5 h-5 text-white" />
+                    </div>
+                  </>
+                )}
+                {session.roles?.includes('USER') && !session.roles?.includes('ADMIN') && (
+                  <>
+                    <div
+                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 rounded-full p-1.5 cursor-pointer shadow-md transition-colors"
+                      onClick={handleReject}
+                    >
+                      <X className="w-5 h-5 text-white" />
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+            {session.isLoggedIn && !isSubmittedPage && (
+              <div
+                className="absolute top-2 right-2 bg-white rounded-full p-1.5 cursor-pointer flex flex-col items-center shadow border border-black"
+                onClick={handleFavouriteToggle}
+              >
+                <Heart
+                  className={`w-6 h-6 ${
+                      isFavourite ? "text-red-500 fill-current" : "text-gray-500"
+                  }`}
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  {favoriteCount}
+                </span>
+              </div>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="px-4">
+          <div className="space-y-1">
+            <div className="flex justify-between items-start space-y-0">
+              <div>
+                <h3 className="font-semibold">{restaurant.name}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {restaurant.cuisine}
+                </p>
+              </div>
+              {showMenu && (
+                <div>
+                  <ActionMenu onEdit={handleEdit} onDelete={onDelete} />
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-gray-600 line-clamp-2">
+              {restaurant.description}
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {restaurant.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} className="text-xs ">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      {isEditDialogOpen && (
+        <AddRestaurantDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          restaurantToEdit={restaurant}
+          onAddRestaurant={() => {}}
+          onEditRestaurant={handleEditSuccess}
+        />
+      )}
+    </>
   );
 }

@@ -26,7 +26,7 @@ public class DishRequestDTO {
 
     private String image;
 
-    @Builder.Default
-    private boolean isDraft = false; // true for draft, false for published
+//    @Builder.Default
+//    private boolean isDraft = false; // true for draft, false for published
 
 }

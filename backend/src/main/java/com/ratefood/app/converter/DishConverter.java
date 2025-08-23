@@ -40,6 +40,10 @@ public class DishConverter {
 //                .image(dish.getImage())
                 .image(imageService.getPresignedUrl(ImageType.DRAFT_DISH + "/" + String.valueOf(dish.getId()) , 100))
                 .build();
+        if(dish.getImage() != null && !dish.getImage().isBlank())
+            responseDto.setImage(dish.getImage());
+        else
+            responseDto.setImage(imageService.getPresignedUrl(ImageType.DRAFT_DISH + "/" + String.valueOf(dish.getId()) , 100));
         if(dish.getRestaurant() != null)
             responseDto.setRestaurant(dish.getRestaurant().getName());
         return responseDto;

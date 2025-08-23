@@ -48,4 +48,6 @@ public class RestaurantResponseDTO {
     @Builder.Default
     Boolean isFavourite = false;
 
+    @Builder.Default
+    private int favoriteCount = 0;
 }
