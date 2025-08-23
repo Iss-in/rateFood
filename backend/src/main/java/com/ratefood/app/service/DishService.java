@@ -296,7 +296,7 @@ public class DishService {
             dish.setDescription(draftDish.getDescription());
             dish.setRestaurant(draftDish.getRestaurant());
         }
-        String draftImageKey = ImageType.DRAFT_DISH + "/" + draftDish.getId() ;
+        String draftImageKey = ImageType.DRAFT_DISH + "/" + dishId ;
         String imageKey = ImageType.DISH + "/" + id ;
         dish.setImage(imageService.replaceImage(draftImageKey, imageKey));
         dishRepository.save(dish);
