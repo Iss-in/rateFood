@@ -303,7 +303,7 @@ public class RestaurantService {
             restaurant.setCuisine(draftRestaurant.getCuisine());
 
         }
-        String draftImageKey = ImageType.DRAFT_RESTAURANT + "/" + draftRestaurant.getId() ;
+        String draftImageKey = ImageType.DRAFT_RESTAURANT + "/" + id ;
         String imageKey = ImageType.RESTAURANT + "/" + id ;
         restaurant.setImage(imageService.replaceImage(draftImageKey, imageKey));
         restaurantRepository.save(restaurant);
