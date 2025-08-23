@@ -2,6 +2,7 @@ package com.ratefood.app.converter;
 
 import com.ratefood.app.dto.response.RestaurantResponseDTO;
 
+import com.ratefood.app.entity.DraftRestaurant;
 import com.ratefood.app.entity.FavouriteRestaurant;
 import com.ratefood.app.entity.Restaurant;
 import com.ratefood.app.enums.ImageType;
@@ -23,6 +24,22 @@ public class RestaurantConverter {
     private ImageService imageService;
 
     public RestaurantResponseDTO fromRestaurantToRestaurantResponseDTO(Restaurant restaurant){
+        RestaurantResponseDTO responseDto = RestaurantResponseDTO.builder()
+                .name(restaurant.getName())
+                .id(restaurant.getId())
+                .description(restaurant.getDescription())
+                .cuisine(restaurant.getCuisine())
+                .tags(restaurant.getTags())
+                .rating(restaurant.getRating())
+                .latitude(restaurant.getLatitude())
+                .longitude(restaurant.getLongitude())
+                .image(restaurant.getImage())
+                .city(restaurant.getCity())
+                .build();
+        return responseDto;
+    }
+
+    public RestaurantResponseDTO fromDraftRestaurantToRestaurantResponseDTO(DraftRestaurant restaurant){
         RestaurantResponseDTO responseDto = RestaurantResponseDTO.builder()
                 .name(restaurant.getName())
                 .id(restaurant.getId())
@@ -60,4 +77,5 @@ public class RestaurantConverter {
         }
         return responseDto;
     }
+
 }

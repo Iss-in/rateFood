@@ -238,7 +238,9 @@ export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange , sele
           restaurant: formData.restaurant,
           description: formData.description,
           tags: formData.tags,
-          image: formData.image || `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop`,
+          // image: formData.image || `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop`,
+          image: formData.image ,
+
         });
       }
       setFormData({

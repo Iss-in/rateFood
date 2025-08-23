@@ -66,5 +66,17 @@ public class ImageService {
         return url;
     }
 
+    public String getPlaceholder(ImageType type ) throws Exception {
+        if(type == ImageType.DISH){
+            String key = "PLACEHOLDER/" + ImageType.DISH  + "/dish_1.png";
+            return getPresignedUrl(key, 100);
+        }
+        if(type == ImageType.RESTAURANT){
+            String key = "PLACEHOLDER/" + ImageType.RESTAURANT  + "/restaurant_1.png";
+            return getPresignedUrl(key, 100);
+        }
+        return "";
+    }
+
 
 }

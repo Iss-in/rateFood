@@ -9,10 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CityRepository extends JpaRepository<City, String> {
-    City findByName(String name);
+    Optional<City> findByName(String name);
     List<City> findAllByOrderByIdAsc(); // add this to your repository
     Page<City> findByNameStartingWithIgnoreCase(String prefix, Pageable pageable);
     Page<City> findAll(Pageable pageable);

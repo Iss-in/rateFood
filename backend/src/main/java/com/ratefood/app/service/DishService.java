@@ -56,16 +56,21 @@ public class DishService {
         String restaurantName = dto.getRestaurant();
         Restaurant restaurant =  restaurantRepository.findByName(restaurantName).orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
+        if (dto.getImage() == null || dto.getImage().isBlank())
+            dto.setImage(imageService.getPlaceholder(ImageType.DISH ));
+
         if(isAdmin) {
             Dish dishEntity = Dish.builder()
                     .name(dto.getName())
                     .restaurant(restaurant)
                     .tags(dto.getTags())
+                    .image(dto.getImage())
                     .description(dto.getDescription())
                     .build();
             Dish dishCreated = dishRepository.save(dishEntity);
 
-            if (dto.getImage() != null && !dto.getImage().contains("foodapp/" + ImageType.DISH)) {
+
+            if (!dto.getImage().contains("foodapp/" + ImageType.DISH)) {
                 //TODO: can compress image to a size ?
                 String key = ImageType.DISH + "/" + String.valueOf(dishCreated.getId());
                 imageService.uploadImage(dto.getImage(), key);
@@ -85,13 +90,15 @@ public class DishService {
                     .description(dto.getDescription())
                     .userId(userId)
                     .build();
-            if (dto.getImage() != null && !dto.getImage().contains("foodapp/" + ImageType.DRAFT_DISH)) {
+            if (!dto.getImage().contains("foodapp/" + ImageType.DRAFT_DISH)) {
                 //TODO: can compress image to a size ?
                 String key = ImageType.DRAFT_DISH + "/" + String.valueOf(dto.getId());
                 imageService.uploadImage(dto.getImage(), key);
                 String imageLink = imageService.getPresignedUrl(key, 10);
                 dishEntity.setImage(imageLink);
             }
+            else
+                dishEntity.setImage(dto.getImage());
             DraftDish dishCreated  = draftDishRepository.save(dishEntity);
             DishResponseDTO responseDto = dishConverter.fromDraftDishtoDishResponseDTO(dishCreated);
             return responseDto;

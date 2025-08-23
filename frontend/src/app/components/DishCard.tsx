@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useSession, SessionContextType } from "../contexts/SessionContext";
-import {Heart, Pencil, Check, X} from "lucide-react";
+import { Heart, Pencil, Check, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
 import { fetchWithAuth } from "@/lib/api";
@@ -34,7 +34,7 @@ interface DishCardProps {
 export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selectedCity, showMenu, isSubmittedPage = false }: DishCardProps) {
   const { session }: SessionContextType = useSession();
   const { setDishes, submittedDishes, setSubmittedDishes } = useAppContext();
-  
+
   const [isFavourite, setIsFavourite] = useState(dish.isFavourite ?? false);
   const [favoriteCount, setFavoriteCount] = useState(dish.favoriteCount);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -47,34 +47,34 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
   // };
 
   const handleApprove = async () => {
-  console.log("Approve button clicked for dish:", dish.id);
+    console.log("Approve button clicked for dish:", dish.id);
 
-  try {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/dish/draft/${dish.id}`;
-    const response = await fetch(url, {
-      method: "PUT",  // approve = PUT
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session?.token}`, // if auth required
-      },
-      // body: JSON.stringify({ approved: true }), // if backend expects body
-    });
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/dish/draft/${dish.id}`;
+      const response = await fetch(url, {
+        method: "PUT",  // approve = PUT
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.token}`, // if auth required
+        },
+        // body: JSON.stringify({ approved: true }), // if backend expects body
+      });
 
-    if (response.ok) {
-      // Remove from local state
-      setSubmittedDishes(prevDishes =>
-        prevDishes.filter(d => d.id !== dish.id)
-      );
-      toast.success("Dish approved successfully!");
-    } else {
-      const errorData = await response.json();
-      toast.error(errorData.message || "Failed to approve dish.");
+      if (response.ok) {
+        // Remove from local state
+        setSubmittedDishes(prevDishes =>
+          prevDishes.filter(d => d.id !== dish.id)
+        );
+        toast.success("Dish approved successfully!");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to approve dish.");
+      }
+    } catch (error) {
+      console.error("Error approving dish:", error);
+      toast.error("Something went wrong while approving dish.");
     }
-  } catch (error) {
-    console.error("Error approving dish:", error);
-    toast.error("Something went wrong while approving dish.");
-  }
-};
+  };
 
 
   const handleReject = async () => {
@@ -118,12 +118,12 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
       const response = await fetchWithAuth(url, {
         method: "DELETE",
       });
-      
+
       if (response.ok) {
         toast.success(t => (
-            <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
-              Dish deleted successfully!
-            </div>
+          <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+            Dish deleted successfully!
+          </div>
         ));
         onRemove();
       } else {
@@ -147,7 +147,7 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
     try {
       // Make API call to update the dish
       const url = `${process.env.NEXT_PUBLIC_API_URL}/foodapp/updateDish`;
-      
+
       const response = await fetchWithAuth(url, {
         method: "PUT",
         headers: {
@@ -166,11 +166,11 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
 
         // Check if session.roles exists and includes 'ADMIN'
         if (session.roles?.includes('ADMIN')) {
-            toast.success(t => (
-                <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
-                  Dish updated successfully!
-                </div>
-            ));
+          toast.success(t => (
+            <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+              Dish updated successfully!
+            </div>
+          ));
           setDishes((prevDishes: Dish[]) =>
             prevDishes.map(dish =>
               dish.id === updatedDish.id ? updatedDish : dish
@@ -185,7 +185,7 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
             prevDishes.filter(dish => dish.id !== updatedDish.id)
           );
         }
-               
+
         setIsEditDialogOpen(false);
         if (onUpdate) {
           onUpdate(updatedDish);
@@ -213,7 +213,7 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
       const response = await fetchWithAuth(url, {
         method: "POST",
       });
-      
+
       if (response.ok) {
         if (isFavourite) {
           // Currently favourited → unfavourite
@@ -221,9 +221,9 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
           setFavoriteCount((prev) => Math.max(0, prev - 1));
           onFavouriteRemove();
           toast.success(t => (
-              <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
-                Dish unfavourited successfully!
-              </div>
+            <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+              Dish unfavourited successfully!
+            </div>
           ));
 
         } else {
@@ -231,9 +231,9 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
           setIsFavourite(true);
           setFavoriteCount((prev) => prev + 1);
           toast.success(t => (
-              <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
-                Dish Favourited successfully!
-              </div>
+            <div onClick={() => toast.dismiss(t.id)} style={{ cursor: "pointer" }}>
+              Dish Favourited successfully!
+            </div>
           ));
 
         }
@@ -245,7 +245,7 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
       toast.error(`${error} error occurred. Please try again.`);
     }
   };
-  
+
   return (
     <>
       <Card className="overflow-hidden shadow hover:shadow-md transition-shadow  min-h-90 max-h-90">
@@ -293,22 +293,21 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
             )}
 
 
-            
+
             {/* Favorite Button - Moved to bottom right to avoid overlap */}
             {session.isLoggedIn && !isSubmittedPage && (
-                <div
-                    className="absolute top-2 right-2 bg-white rounded-full p-1.5 cursor-pointer flex flex-col items-center shadow border border-black"
-                    onClick={handleFavouriteToggle}
-                >
-                  <Heart
-                      className={`w-6 h-6 ${
-                          isFavourite ? "text-red-500 fill-current" : "text-gray-500"
-                      }`}
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    {favoriteCount}
-                  </span>
-                </div>
+              <div
+                className="absolute top-2 right-2 bg-white rounded-full p-1.5 cursor-pointer flex flex-col items-center shadow border border-black"
+                onClick={handleFavouriteToggle}
+              >
+                <Heart
+                  className={`w-6 h-6 ${isFavourite ? "text-red-500 fill-current" : "text-gray-500"
+                    }`}
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  {favoriteCount}
+                </span>
+              </div>
             )}
           </div>
         </CardHeader>
@@ -321,7 +320,7 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
                 <p className="text-sm text-muted-foreground">{dish.restaurant}</p>
               </div>
 
-              { showMenu && <div>
+              {showMenu && <div>
                 <ActionMenu onEdit={handleEdit} onDelete={onDelete} />
               </div>
               }
@@ -335,10 +334,10 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
             </div>
 
             <div className="flex flex-nowrap gap-1 overflow-x-auto scrollbar-hide">              {dish.tags.slice(0, 3).map((tag) => (
-                <Badge key={tag} className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
+              <Badge key={tag} className="text-xs">
+                {tag}
+              </Badge>
+            ))}
             </div>
           </div>
         </CardContent>
@@ -351,7 +350,7 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
           dishToEdit={dish}
-          onAddDish={() => {}} // Not used in edit mode
+          onAddDish={() => { }} // Not used in edit mode
           onEditDish={handleEditSuccess}
         />
       )}

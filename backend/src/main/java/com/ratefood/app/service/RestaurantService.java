@@ -8,6 +8,7 @@ import com.ratefood.app.dto.response.RestaurantResponseDTO;
 import com.ratefood.app.entity.*;
 import com.ratefood.app.enums.ImageType;
 import com.ratefood.app.repository.CityRepository;
+import com.ratefood.app.repository.DraftRestaurantRepository;
 import com.ratefood.app.repository.FavouriteRestaurantRepository;
 import com.ratefood.app.repository.RestaurantRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,6 +40,9 @@ public class RestaurantService {
     @Autowired
     private ImageService imageService;
 
+    @Autowired
+    private DraftRestaurantRepository draftRestaurantRepository;
+
     public PageResponseDTO<List<RestaurantResponseDTO>> getRestaurants(
             String name,
             String city,
@@ -67,39 +71,109 @@ public class RestaurantService {
         return dto;
     }
 
-    public Restaurant addRestaurant(RestaurantRequestDTO restaurantDTO) throws Exception {
+    public RestaurantResponseDTO addRestaurant(RestaurantRequestDTO restaurantDTO, Long userId) throws Exception {
 
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        boolean isAdmin = authentication.getAuthorities().stream()
-//                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
-//
-//        restaurantDTO.setDraft(isAdmin);  // true if admin, false if not
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
         String cityName = restaurantDTO.getCity();
-        City city = cityRepository.findByName(cityName);
-        Restaurant restaurantEntity = Restaurant.builder()
-//                .id(1)
-                .name(restaurantDTO.getName())
-                .cuisine(restaurantDTO.getCuisine())
-                .description(restaurantDTO.getDescription())
-                .tags(restaurantDTO.getTags())
-                .image(restaurantDTO.getImage())
-                .city(city)
-//                .longitude(restaurantDTO.getLongitude()) TODO: get location from user
-//                .latitude(restaurantDTO.getLatitude())
-                .build();
-        Restaurant restaurantCreated = restaurantRepository.save(restaurantEntity);
-        if(restaurantDTO.getImage() != null){
-            //TODO: can compress image to a size ?
-            String key = ImageType.RESTAURANT + "/" + String.valueOf(restaurantCreated.getId()) ;
-            imageService.uploadImage(restaurantDTO.getImage(), key);
-            String imageLink = imageService.getPresignedUrl(key, 10);
-            restaurantCreated.setImage(imageLink);
-        }
+        City city = cityRepository.findByName(cityName).orElseThrow(() -> new EntityNotFoundException("City not found"));
 
-        return restaurantRepository.save(restaurantCreated);
+        if (restaurantDTO.getImage() == null || restaurantDTO.getImage().isBlank())
+            restaurantDTO.setImage(imageService.getPlaceholder(ImageType.RESTAURANT ));
+
+        if(isAdmin) {
+            Restaurant restaurantEntity = Restaurant.builder()
+                    .name(restaurantDTO.getName())
+                    .cuisine(restaurantDTO.getCuisine())
+                    .description(restaurantDTO.getDescription())
+                    .tags(restaurantDTO.getTags())
+                    .image(restaurantDTO.getImage())
+                    .city(city)
+                    .build();
+            Restaurant restaurantCreated = restaurantRepository.save(restaurantEntity);
+                if (!restaurantDTO.getImage().contains("foodapp/" + ImageType.RESTAURANT)) {
+                //TODO: can compress image to a size ?
+                String key = ImageType.RESTAURANT + "/" + String.valueOf(restaurantCreated.getId()) ;
+                imageService.uploadImage(restaurantDTO.getImage(), key);
+                String imageLink = imageService.getPresignedUrl(key, 10);
+                restaurantCreated.setImage(imageLink);
+            }
+
+            return restaurantConverter.fromRestaurantToRestaurantResponseDTO(restaurantRepository.save(restaurantCreated));
+        }
+        else{
+            DraftRestaurant draftRestaurant = DraftRestaurant.builder()
+                    .name(restaurantDTO.getName())
+                    .city(city)
+                    .tags(restaurantDTO.getTags())
+                    .description(restaurantDTO.getDescription())
+                    .userId(userId)
+                    .build();
+            if (!restaurantDTO.getImage().contains("foodapp/" + ImageType.DRAFT_RESTAURANT)) {
+                String key = ImageType.DRAFT_RESTAURANT + "/" + String.valueOf(restaurantDTO.getId());
+                imageService.uploadImage(restaurantDTO.getImage(), key);
+                String imageLink = imageService.getPresignedUrl(key, 10);
+                draftRestaurant.setImage(imageLink);
+            }
+            else
+                draftRestaurant.setImage(restaurantDTO.getImage());
+            DraftRestaurant restaurantCreated  = draftRestaurantRepository.save(draftRestaurant);
+            RestaurantResponseDTO responseDto = restaurantConverter.fromDraftRestaurantToRestaurantResponseDTO(restaurantCreated);
+            return responseDto;
+        }
     }
 
+    public RestaurantResponseDTO updateRestaurant(RestaurantRequestDTO restaurantDTO, Long userId) throws Exception {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        String cityName = restaurantDTO.getCity();
+        City city = cityRepository.findByName(cityName).orElseThrow(() -> new EntityNotFoundException("City not found"));
+
+
+        if(isAdmin) {
+            Restaurant restaurantEntity = Restaurant.builder()
+                    .id(restaurantDTO.getId())
+                    .name(restaurantDTO.getName())
+                    .cuisine(restaurantDTO.getCuisine())
+                    .description(restaurantDTO.getDescription())
+                    .tags(restaurantDTO.getTags())
+                    .image(restaurantDTO.getImage())
+                    .city(city)
+                    .build();
+            if (restaurantDTO.getImage() != null && !restaurantDTO.getImage().contains("foodapp/" + ImageType.RESTAURANT)) {
+                String key = ImageType.RESTAURANT + "/" + String.valueOf(restaurantEntity.getId()) ;
+                imageService.uploadImage(restaurantDTO.getImage(), key);
+                String imageLink = imageService.getPresignedUrl(key, 10);
+                restaurantEntity.setImage(imageLink);
+            }
+            Restaurant restaurantCreated = restaurantRepository.save(restaurantEntity);
+            return restaurantConverter.fromRestaurantToRestaurantResponseDTO(restaurantCreated);
+        }
+        else{
+            DraftRestaurant draftRestaurant = DraftRestaurant.builder()
+                    .id(restaurantDTO.getId())
+                    .name(restaurantDTO.getName())
+                    .city(city)
+                    .tags(restaurantDTO.getTags())
+                    .description(restaurantDTO.getDescription())
+                    .restaurant(restaurantRepository.findById(restaurantDTO.getId()).orElseThrow(() -> new EntityNotFoundException("Restaurant not found")))
+                    .userId(userId)
+                    .build();
+            if (restaurantDTO.getImage() != null && !restaurantDTO.getImage().contains("foodapp/" + ImageType.DRAFT_RESTAURANT)) {
+                String key = ImageType.DRAFT_RESTAURANT + "/" + String.valueOf(restaurantDTO.getId());
+                imageService.uploadImage(restaurantDTO.getImage(), key);
+                String imageLink = imageService.getPresignedUrl(key, 10);
+                draftRestaurant.setImage(imageLink);
+            }
+            DraftRestaurant draftRestaurantCreated = draftRestaurantRepository.save(draftRestaurant);
+            RestaurantResponseDTO responseDto = restaurantConverter.fromDraftRestaurantToRestaurantResponseDTO(draftRestaurantCreated);
+            return responseDto;
+        }
+    }
 
     public PageResponseDTO<List<RestaurantResponseDTO>> getFavouriteRestaurants(
             String city,
@@ -145,4 +219,49 @@ public class RestaurantService {
         return Boolean.TRUE;
     }
 
+    public List<RestaurantResponseDTO> getDraftRestaurants(Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        List<DraftRestaurant> draftRestaurants;
+        if(isAdmin)
+            draftRestaurants =  draftRestaurantRepository.findAll();
+        else
+            draftRestaurants = draftRestaurantRepository.findByUserId(userId);
+        return draftRestaurants.stream().map(draftRestaurant -> {
+            try {
+                return restaurantConverter.fromDraftRestaurantToRestaurantResponseDTO(draftRestaurant);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList());
+    }
+
+    public Boolean approveDraftRestaurant(Long restaurantId, Long userId) {
+        DraftRestaurant draftRestaurant = draftRestaurantRepository.findById(restaurantId).orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+        Restaurant restaurant;
+        if (draftRestaurant.getRestaurant() != null) {
+            restaurant = Restaurant.builder()
+                    .name(draftRestaurant.getName())
+                    .city(draftRestaurant.getCity())
+                    .description(draftRestaurant.getDescription())
+                    .tags(draftRestaurant.getTags())
+                    .image(draftRestaurant.getImage())
+                    .cuisine(draftRestaurant.getCuisine())
+                    .build();
+        } else {
+            restaurant = draftRestaurant.getRestaurant();
+            restaurant.setName(draftRestaurant.getName());
+            restaurant.setCity(draftRestaurant.getCity());
+            restaurant.setDescription(draftRestaurant.getDescription());
+            restaurant.setTags(draftRestaurant.getTags());
+            restaurant.setImage(draftRestaurant.getImage());
+            restaurant.setCuisine(draftRestaurant.getCuisine());
+
+        }
+        restaurantRepository.save(restaurant);
+        draftRestaurantRepository.delete(draftRestaurant);
+        return Boolean.TRUE;
+    }
 }

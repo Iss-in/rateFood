@@ -9,8 +9,8 @@ public class MinioClientConfig {
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()
-                .endpoint("http://172.20.0.13:9000")
-                .credentials("user", "password")
+                .endpoint("http://31.97.231.63:9000")
+                .credentials("user", "bqvPz78Lv2ql")
                 .build();
     }
 }

@@ -31,10 +31,8 @@ import java.util.List;
 @RequestMapping("/api")
 public class DishController {
 //    private static final Logger log = LoggerFactory.getLogger(DishController.class);
-    private DishRepository dishRepository;
-
     @Autowired
-    private RestaurantRepository restaurantRepository;
+    private DishRepository dishRepository;
 
     @Autowired
     private DishService dishService;
@@ -42,13 +40,12 @@ public class DishController {
     @Autowired
     private DraftDishRepository draftDishRepository;
 
-    public DishController(DishRepository dishRepository) {
-        this.dishRepository = dishRepository;
-    }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PostMapping("/dish")
-    public ResponseEntity<DishResponseDTO> addDish(@RequestBody DishRequestDTO dishDTO, @RequestHeader("X-User-Id") Long userId) throws Exception {
+    public ResponseEntity<DishResponseDTO> addDish(
+            @RequestBody DishRequestDTO dishDTO,
+            @RequestHeader("X-User-Id") Long userId) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info("Authenticated user authorities: {}", authentication.getAuthorities());
         DishResponseDTO newDish = dishService.createDish(dishDTO, userId);

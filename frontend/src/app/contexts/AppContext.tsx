@@ -4,6 +4,8 @@ import { Dish } from "@/app/components/DishCard";
 import { Restaurant } from "@/app/components/RestaurantCard";
 import { fetchWithAuth } from "@/lib/api";
 import { useCallback } from 'react';
+import { useSession, SessionContextType } from "../contexts/SessionContext";
+import toast from 'react-hot-toast';
 
 interface AppContextType {
   selectedCity: string;
@@ -90,6 +92,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [restaurantsCurrentPage, setRestaurantsCurrentPage] = useState<number>(0);
   const [hasMoreDishes, setHasMoreDishes] = useState(false);
   const [hasMoreRestaurants, setHasMoreRestaurants] = useState(true);
+  const { session }: SessionContextType = useSession();
 
   const handleAddDish = async (newDish: Omit<Dish, "id" | "rating" | "favoriteCount">) => {
     const dish: Dish = {
@@ -113,10 +116,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       const createdDish: Dish = await response.json();
-      console.log('Created dish:', createdDish);
       
       // Use the server response if available, otherwise use local dish
-      setDishes(prev => [createdDish || dish, ...prev]);
+      if (session.roles?.includes('ADMIN')) {
+        setDishes(prev => [createdDish || dish, ...prev]);
+        toast.success('New Dish Added', createdDish);
+      }
+      if (session.roles?.includes('USER')) {
+        // setDishes(prev => [createdDish || dish, ...prev]);
+        toast.success('Draft Dish Request added', createdDish);
+      }
+
     } catch (error) {
       console.error('Failed to add dish:', error);
       // Still add to local state as fallback
