@@ -84,6 +84,8 @@ export function FavouritesPage() {
                     restaurant={restaurant}
                     onRemove={() => {}}
                     onFavouriteRemove={() => removeFavouriteRestaurant(restaurant.id)}
+                    selectedCity={""}
+                    showMenu={false}
                   />
                 </div>
               ))}
@@ -96,6 +98,8 @@ export function FavouritesPage() {
                   restaurant={restaurant}
                   onRemove={() => {}}
                   onFavouriteRemove={() => removeFavouriteRestaurant(restaurant.id)}
+                    selectedCity={""}
+                    showMenu={false}
                 />
               ))}
             </div>
