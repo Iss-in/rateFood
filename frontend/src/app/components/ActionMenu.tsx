@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useSession, SessionContextType } from "../contexts/SessionContext";
 
 interface ActionMenuProps {
   onEdit: () => void; // Function to open edit dialog
@@ -9,6 +10,7 @@ interface ActionMenuProps {
 export default function ActionMenu({ onEdit, onDelete }: ActionMenuProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { session }: SessionContextType = useSession();
 
   // Close menu on outside click
   useEffect(() => {
@@ -17,10 +19,10 @@ export default function ActionMenu({ onEdit, onDelete }: ActionMenuProps) {
         setOpen(false);
       }
     }
-    
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => { 
-      document.removeEventListener("mousedown", handleClickOutside); 
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -47,7 +49,7 @@ export default function ActionMenu({ onEdit, onDelete }: ActionMenuProps) {
           <circle cx="10" cy="16" r="1.5" />
         </svg>
       </button>
-      
+
       {open && (
         <div className="absolute right-5 top-3 mt-0 w-20 bg-white border border-gray-200 rounded-md shadow-lg z-0">
           <button
@@ -56,12 +58,15 @@ export default function ActionMenu({ onEdit, onDelete }: ActionMenuProps) {
           >
             Edit
           </button>
-          <button
-            onClick={handleDelete}
-            className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
-          >
-            Delete
-          </button>
+
+          {session.roles?.includes('ADMIN') &&
+            <button
+              onClick={handleDelete}
+              className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
+            >
+              Delete
+            </button>
+          }
         </div>
       )}
     </div>

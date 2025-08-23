@@ -12,12 +12,13 @@ import { Badge } from "./ui/badge";
 import { Plus } from "lucide-react";
 import { Dish } from "./DishCard";
 import toast from 'react-hot-toast';
+
 interface AddDishDialogProps {
   onAddDish: (dish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
   onEditDish?: (dish: Omit<Dish, "id" | "rating" | "favoriteCount">) => void;
   selectedCity: string;
-  open?: boolean; // add this
-  onOpenChange?: (open: boolean) => void; // add
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   dishToEdit?: Dish | null;
 }
 
@@ -25,25 +26,23 @@ interface RestaurantNameDropdownProps {
   selectedCity: string;
   restaurant: string;
   setRestaurant: (name: string) => void;
-  onValidate: (isValid: boolean) => void; // notify parent validation status
+  onValidate: (isValid: boolean) => void;
 }
-
 
 // Move component OUTSIDE of AddDishDialog
 const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
-                                                                            selectedCity,
-                                                                            restaurant,
-                                                                            setRestaurant,
-                                                                            onValidate,
-                                                                          }: RestaurantNameDropdownProps) {
+  selectedCity,
+  restaurant,
+  setRestaurant,
+  onValidate,
+}: RestaurantNameDropdownProps) {
   const [query, setQuery] = useState(restaurant);
   const prevRestaurantRef = useRef(restaurant);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(-1); // -1 means nothing highlighted
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-
   const [restaurantError, setRestaurantError] = useState("");
 
   const handleBlur = () => {
@@ -53,24 +52,22 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
       setShowDropdown(false);
       if (query.trim() === "") {
         setRestaurantError("");
-        onValidate(true); // valid if empty (if required, handle separately)
+        onValidate(true);
         return;
       }
       const exactMatch = suggestions.some(
           (name) => name.toLowerCase() === query.trim().toLowerCase()
       );
-      console.log(query, suggestions,exactMatch)
+      console.log(query, suggestions, exactMatch)
 
       if (!exactMatch) {
         setRestaurantError("Please select a restaurant from the list.");
       } else {
         setRestaurantError("");
-        onValidate(true);   // <-- Add this line
-        // console.log(`resutaurent validity ${isRestaurantValid}`)
+        onValidate(true);
       }
     }, 200);
   };
-
 
   useEffect(() => {
     if (restaurant !== prevRestaurantRef.current) {
@@ -141,19 +138,17 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
     setQuery(val);
     setRestaurant(val);
     setShowDropdown(true);
-    setRestaurantError(""); // Clear error on input change
-    onValidate(false); // assume invalid until valid
+    setRestaurantError("");
+    onValidate(false);
   };
 
   const handleSelect = (restaurantName: string) => {
     setQuery(restaurantName);
     setRestaurant(restaurantName);
     setShowDropdown(false);
-    setRestaurantError(""); // Clear error on valid select
+    setRestaurantError("");
     onValidate(true);
-  };   // Add this prop
-
-
+  };
 
   return (
       <div className="relative">
@@ -188,8 +183,8 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
                           className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
                               index === highlightedIndex ? "bg-blue-100" : ""
                           }`}
-                          onMouseDown={() => handleSelect(name)} // mouseDown to prevent input blur before click
-                          onMouseEnter={() => setHighlightedIndex(index)} // highlight on hover
+                          onMouseDown={() => handleSelect(name)}
+                          onMouseEnter={() => setHighlightedIndex(index)}
                       >
                         {name}
                       </li>
@@ -203,15 +198,21 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
   );
 });
 
-
-export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange , selectedCity, dishToEdit = null}: AddDishDialogProps) {
-
-  const setIsOpen = onOpenChange ?? (() => {});
+export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange, selectedCity, dishToEdit = null }: AddDishDialogProps) {
+  const [isRestaurantValid, setIsRestaurantValid] = useState(false);
+  
+  // Always use controlled mode - provide defaults if not passed
+  const isControlled = open !== undefined && onOpenChange !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const isOpen = isControlled ? open : internalOpen;
+  const setIsOpen = isControlled ? onOpenChange : setInternalOpen;
+  
   const isEditMode = dishToEdit !== null;
+  
+  // If controlled (open/onOpenChange provided), don't render the trigger button
+  // This prevents multiple buttons when used in controlled mode
 
-
-  const [isRestaurantValid, setIsRestaurantValid] = useState(false);  // <-- ADD THIS
-  // const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     restaurant: "",
@@ -224,7 +225,6 @@ export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange , sele
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!isRestaurantValid) {
-      // Optionally, show a general error or focus input
       console.log(isRestaurantValid)
       toast.error("Please select a valid restaurant.");
       return;
@@ -238,9 +238,7 @@ export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange , sele
           restaurant: formData.restaurant,
           description: formData.description,
           tags: formData.tags,
-          // image: formData.image || `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop`,
-          image: formData.image ,
-
+          image: formData.image,
         });
       }
       setFormData({
@@ -265,10 +263,10 @@ export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange , sele
     setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }));
   };
 
-    useEffect(() => {
+  useEffect(() => {
     if (dishToEdit) {
       setFormData({ ...dishToEdit });
-      setIsRestaurantValid(true); // Assume valid if editing preset dish
+      setIsRestaurantValid(true);
     } else {
       setFormData({
         name: "",
@@ -279,22 +277,16 @@ export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange , sele
       });
       setIsRestaurantValid(false);
     }
-  }, [dishToEdit, open]);
+  }, [dishToEdit, isOpen]);
 
-  return (
-      <Dialog open={open} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          <button
-              data-slot="button"
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Dish
-          </button>
-        </DialogTrigger>
+  // Render trigger button only when not controlled (uncontrolled mode)
+  if (isControlled) {
+    // Controlled mode - only render dialog content, no trigger
+    return (
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-          <DialogTitle>{isEditMode ? "Edit Dish" : "Add New Dish"}</DialogTitle>
+            <DialogTitle>{isEditMode ? "Edit Dish" : "Add New Dish"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -366,7 +358,101 @@ export function AddDishDialog({ onAddDish, onEditDish, open, onOpenChange , sele
               <Button type="button" onClick={() => setIsOpen(false)}>
                 Cancel
               </Button>
-            <Button type="submit">{isEditMode ? "Save Changes" : "Add Dish"}</Button>
+              <Button type="submit">{isEditMode ? "Save Changes" : "Add Dish"}</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Uncontrolled mode - render with trigger button
+  return (
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <button
+              data-slot="button"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Dish
+          </button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{isEditMode ? "Edit Dish" : "Add New Dish"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="dish-name">Dish Name *</Label>
+              <Input
+                  id="dish-name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  required
+              />
+            </div>
+
+            <div>
+              <RestaurantNameDropdown
+                  selectedCity={selectedCity}
+                  restaurant={formData.restaurant}
+                  setRestaurant={(restaurant: string) => setFormData(prev => ({ ...prev, restaurant }))}
+                  onValidate={setIsRestaurantValid}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label>Tags</Label>
+              <div className="flex space-x-2 mb-2">
+                <Input
+                    placeholder="Add tag"
+                    value={currentTag}
+                    onChange={(e) => setCurrentTag(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                />
+                <Button type="button" onClick={addTag} size="sm">Add</Button>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {formData.tags.map((tag) => (
+                    <Badge key={tag} className="gap-1">
+                      {tag}
+                      <button
+                          type="button"
+                          className="p-0 m-0 text-sm leading-none cursor-pointer"
+                          onClick={() => removeTag(tag)}
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="image">Image URL</Label>
+              <Input
+                  id="image"
+                  value={formData.image}
+                  onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                  placeholder="Optional - will use default if empty"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button type="button" onClick={() => setIsOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">{isEditMode ? "Save Changes" : "Add Dish"}</Button>
             </div>
           </form>
         </DialogContent>
