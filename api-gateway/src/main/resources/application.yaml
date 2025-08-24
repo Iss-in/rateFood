@@ -1,14 +1,14 @@
 server:
-  port: 8082
+  port: ${GATEAWAY_PORT:8082}
 
 spring:
   application:
     name: api-gateway
 
   datasource:
-    url: jdbc:postgresql://31.97.231.63:5433/foodapp
-    username: user
-    password: password
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/foodapp}
+    username: ${DB_URL:user}
+    password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -23,7 +23,7 @@ spring:
         webflux:
           routes:
             - id: foodapp
-              uri: http://localhost:8081
+              uri: http://${BACKEND:localhost}:8081
               predicates:
                 - Path=/api/foodapp/**
               filters:
@@ -36,4 +36,7 @@ logging:
 
 token:
   signing:
-    key: mySecretSigningKey123456789012345678901234567890
+    key: ${SIGN_KEY:mySecretSigningKey123456789012345678901234567890}
+
+cors:
+  allowedOrigins : http://localhost:3000,http://${SERVER_IP}:3000
