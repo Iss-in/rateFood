@@ -331,14 +331,15 @@ export function DishCard({ dish, onRemove, onFavouriteRemove, onUpdate, selected
               {dish.description}
             </p>
 
-            <div className="flex items-center justify-between">
-            </div>
+            {/* <div className="flex items-center justify-between">
+            </div> */}
 
-            <div className="flex flex-nowrap gap-1 overflow-x-auto scrollbar-hide">              {dish.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} className="text-xs">
-                {tag}
-              </Badge>
-            ))}
+            <div className="flex flex-nowrap gap-1 overflow-x-auto scrollbar-hide">
+              {dish.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
             </div>
           </div>
         </CardContent>

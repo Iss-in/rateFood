@@ -54,7 +54,7 @@ export default function ActionMenu({ onEdit, onDelete }: ActionMenuProps) {
         <div className="absolute right-5 top-3 mt-0 w-20 bg-white border border-gray-200 rounded-md shadow-lg z-0">
           <button
             onClick={handleEdit}
-            className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+            className="block w-full text-left px-4 py-1 text-gray-700 hover:bg-gray-100"
           >
             Edit
           </button>
@@ -62,7 +62,7 @@ export default function ActionMenu({ onEdit, onDelete }: ActionMenuProps) {
           {session.roles?.includes('ADMIN') &&
             <button
               onClick={handleDelete}
-              className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
+              className="block w-full text-left px-4 py-1 text-red-600 hover:bg-red-100"
             >
               Delete
             </button>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
 import { X, Plus } from "lucide-react";
@@ -132,6 +133,16 @@ export function AddRestaurantDialog({
                   required
               />
             </div>
+
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Tell us about this restaurant..."
+              />
+            </div>
             
             <div>
               <Label>Tags</Label>
@@ -215,6 +226,16 @@ export function AddRestaurantDialog({
                   }
                 }}
                 required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Tell us about this restaurant..."
             />
           </div>
           
