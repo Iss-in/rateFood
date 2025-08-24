@@ -239,17 +239,18 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
     return (
         <>
             {/* Navbar */}
-            <nav className="border-b bg-background sticky top-0 z-50 w-full overflow-hidden">
+            <nav className="border-b bg-background sticky top-0 z-50 w-full overflow-visible">
                 <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16 min-w-0">
                         {/* Left: Brand - Flexible width */}
                         <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
                             <Link
-                                href="/"
-                                className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center cursor-pointer"
+                            href="/"
+                            className="w-10 h-10 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center cursor-pointer"
                             >
-                                <span className="text-white text-lg sm:text-xl">🍽️</span>
+                            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain  scale-150" />
                             </Link>
+
                             <h1 className="text-lg sm:text-2xl font-bold text-primary hidden xs:block truncate">
                                 FoodieDaddie
                             </h1>
@@ -340,7 +341,7 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
                                     <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
                                 </Button>
                                 {isMenuOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-xl ring-0 ring-green ring-opacity-0 focus:outline-none z-50">
+                                    <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-xl ring-0 ring-green ring-opacity-0 focus:outline-none z-5000">
                                         {pathname !== "/" && (
                                             <Link
                                                 href="/"

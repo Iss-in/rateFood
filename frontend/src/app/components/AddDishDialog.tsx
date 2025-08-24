@@ -61,7 +61,7 @@ const RestaurantNameDropdown = React.memo(function RestaurantNameDropdown({
       console.log(query, suggestions, exactMatch)
 
       if (!exactMatch) {
-        setRestaurantError("Please select a restaurant from the list.");
+        setRestaurantError("Restaurant doesnt exist, please create it first.");
       } else {
         setRestaurantError("");
         onValidate(true);
