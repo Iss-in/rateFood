@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -101,7 +102,7 @@ public class RestaurantService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
-
+        isAdmin = true;
         String cityName = restaurantDTO.getCity();
         City city = cityRepository.findByName(cityName.toLowerCase()).orElseThrow(() -> new EntityNotFoundException("City not found"));
 
@@ -110,6 +111,7 @@ public class RestaurantService {
 
         if(isAdmin) {
             Restaurant restaurantEntity = Restaurant.builder()
+                    .id(UUID.randomUUID())
                     .name(restaurantDTO.getName())
                     .cuisine(restaurantDTO.getCuisine())
                     .description(restaurantDTO.getDescription())
@@ -193,7 +195,7 @@ public class RestaurantService {
                     .userId(userId)
                     .build();
             if (!restaurantDTO.getImage().contains("foodapp/" + ImageType.DRAFT_RESTAURANT)) {
-                String key = ImageType.DRAFT_RESTAURANT + "/" + String.valueOf(restaurantDTO.getId());
+                String key = ImageType.DRAFT_RESTAURANT + "/" + draftRestaurant.getId();
                 imageService.uploadImage(restaurantDTO.getImage(), key);
                 String imageLink = imageService.getPresignedUrl(key, 10);
                 draftRestaurant.setImage(imageLink);
@@ -231,6 +233,10 @@ public class RestaurantService {
 
     @Transactional
     public Boolean markRestaurantFavourite(UUID restaurantId , UUID userId){
+
+        Optional<FavouriteRestaurant> existingFavouriteRestaurant = favouriteRestaurantRepository.getFavouriteRestaurantByUserIdAndRestaurantId(userId, restaurantId);
+        if (existingFavouriteRestaurant.isPresent())
+            return Boolean.TRUE;
 
 
         FavouriteRestaurant favouriteRestaurant = favouriteRestaurantRepository.
