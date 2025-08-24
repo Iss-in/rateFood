@@ -239,77 +239,105 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
     return (
         <>
             {/* Navbar */}
-            <nav className="border-b bg-background sticky top-0 z-50">
-                <div className="mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        {/* Left: Brand - Always at extreme left */}
-                        <div className="flex items-center space-x-3">
+            <nav className="border-b bg-background sticky top-0 z-50 w-full overflow-hidden">
+                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16 min-w-0">
+                        {/* Left: Brand - Flexible width */}
+                        <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
                             <Link
                                 href="/"
-                                className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center cursor-pointer"
+                                className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center cursor-pointer"
                             >
-                                <span className="text-white text-xl">🍽️</span>
+                                <span className="text-white text-lg sm:text-xl">🍽️</span>
                             </Link>
-                            <h1 className="text-2xl font-bold text-primary hidden sm:flex">FoodieDaddie</h1>
+                            <h1 className="text-lg sm:text-2xl font-bold text-primary hidden xs:block truncate">
+                                FoodieDaddie
+                            </h1>
                         </div>
 
-                        {/* Center: Tabs */}
+                        {/* Center: Tabs - Hidden on very small screens */}
                         {pathname === '/' && (
-                            <div className="flex justify-center">
+                            <div className="hidden sm:flex justify-center flex-shrink-0">
                                 <Tabs value={selectedTab} onValueChange={onTabChange}>
-                                    <TabsList className="flex space-x-4">
-                                        <TabsTrigger value="dishes">Dishes</TabsTrigger>
-                                        <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
+                                    <TabsList className="flex space-x-2 sm:space-x-4">
+                                        <TabsTrigger value="dishes" className="text-sm">
+                                            Dishes
+                                        </TabsTrigger>
+                                        <TabsTrigger value="restaurants" className="text-sm">
+                                            Restaurants
+                                        </TabsTrigger>
                                     </TabsList>
                                 </Tabs>
                             </div>
                         )}
 
-                        {/* Right: Add buttons + Location - Always at extreme right */}
-                        <div className="flex items-center space-x-2 ">
-                            {/* Add Dish Button - Show when on home page, dishes tab, and user logged in - Hidden on mobile */}
-                            <div className="max-w-50 min-w-50 flex justify-end">
-                                {pathname === '/' && selectedTab === 'dishes' && session.isLoggedIn && (
-                                    <button
-                                        data-slot="button"
-                                        className="hidden md:inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
-                                        onClick={() => setAddDishOpen(true)}
-                                    >
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Add Dish
-                                    </button>
-                                )}
-
-                                {/* Add Restaurant Button - Show when on home page, restaurants tab, and user logged in - Hidden on mobile */}
-                                {pathname === '/' && selectedTab === 'restaurants' && session.isLoggedIn && (
-                                    <button
-                                        data-slot="button"
-                                        className="hidden md:inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
-                                        onClick={() => setAddRestaurantOpen(true)}
-                                    >
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Add Restaurant
-                                    </button>
-                                )}
+                        {/* Mobile Tabs - Show on small screens, below navbar */}
+                        {pathname === '/' && (
+                            <div className="sm:hidden absolute top-16 left-0 right-0 bg-background border-b z-40">
+                                <div className="px-3 py-2">
+                                    <Tabs value={selectedTab} onValueChange={onTabChange}>
+                                        <TabsList className="flex w-full">
+                                            <TabsTrigger value="dishes" className="flex-1 text-sm">
+                                                Dishes
+                                            </TabsTrigger>
+                                            <TabsTrigger value="restaurants" className="flex-1 text-sm">
+                                                Restaurants
+                                            </TabsTrigger>
+                                        </TabsList>
+                                    </Tabs>
+                                </div>
                             </div>
+                        )}
 
-                            {/* City Selector - Only show on home page */}
-                            {pathname === '/' && (
-                                <div>
-                                    <button
-                                        onClick={() => setIsCityModalOpen(true)}
-                                        className="flex items-center space-x-2 rounded px-3 py-1 bg-white border hover:bg-gray-50 transition-colors"
-                                    >
-                                        <MapPin className="h-4 w-4 text-foreground" />
-                                        <span className="text-sm">{selectedCity || "Select city"}</span>
-                                    </button>
+                        {/* Right: Controls - Flexible width */}
+                        <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0 min-w-0">
+                            {/* Add buttons for desktop only */}
+                            {pathname === '/' && session.isLoggedIn && (
+                                <div className="hidden lg:block">
+                                    {selectedTab === 'dishes' && (
+                                        <button
+                                            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] h-9 px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
+                                            onClick={() => setAddDishOpen(true)}
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            <span className="hidden xl:inline">Add Dish</span>
+                                        </button>
+                                    )}
+
+                                    {selectedTab === 'restaurants' && (
+                                        <button
+                                            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] h-9 px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg"
+                                            onClick={() => setAddRestaurantOpen(true)}
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            <span className="hidden xl:inline">Add Restaurant</span>
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
+                            {/* City Selector - Only show on home page */}
+                            {pathname === '/' && (
+                                <button
+                                    onClick={() => setIsCityModalOpen(true)}
+                                    className="flex items-center space-x-1 sm:space-x-2 rounded px-2 sm:px-3 py-1 sm:py-1.5 bg-white border hover:bg-gray-50 transition-colors min-w-0 max-w-[120px] sm:max-w-none"
+                                >
+                                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-foreground flex-shrink-0" />
+                                    <span className="text-xs sm:text-sm truncate">
+                                        {selectedCity || "City"}
+                                    </span>
+                                </button>
+                            )}
+
                             {/* Menu Button */}
-                            <div className="relative" ref={menuRef}>
-                                <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(prev => !prev)}>
-                                    <Menu className="h-6 w-6" />
+                            <div className="relative flex-shrink-0" ref={menuRef}>
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => setIsMenuOpen(prev => !prev)}
+                                    className="h-8 w-8 sm:h-9 sm:w-9"
+                                >
+                                    <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
                                 </Button>
                                 {isMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-xl ring-0 ring-green ring-opacity-0 focus:outline-none z-50">
@@ -391,7 +419,7 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
             {/* Floating Add Button - Mobile Only - Bottom Right */}
             {pathname === '/' && session.isLoggedIn && (
                 <button
-                    className="fixed bottom-6 right-6 z-50 md:hidden w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
+                    className="fixed bottom-6 right-6 z-50 lg:hidden w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
                     onClick={() => {
                         if (selectedTab === 'dishes') {
                             setAddDishOpen(true);
@@ -418,12 +446,13 @@ export function Navbar({ selectedCity, onCityChange, selectedTab, onTabChange, o
             {/* City Selection Modal */}
             {isCityModalOpen && (
                 <div
-                    className="fixed inset-0 z-[99999] bg-gray-800/50 backdrop-blur-sm flex items-center justify-center"
+                    className="fixed inset-0 z-[99999] bg-gray-800/50 backdrop-blur-sm flex items-center justify-center p-4"
                     onClick={() => setIsCityModalOpen(false)}
                 >
                     <div
-                        className="bg-white rounded-lg shadow-lg w-full max-w-md p-4 flex flex-col h-[42vh]"
+                        className="bg-white rounded-lg shadow-lg w-full max-w-md p-4 flex flex-col h-[42vh] max-h-[500px]"
                         onClick={(e) => e.stopPropagation()}
+                        ref={modalRef}
                     >
                         <div className="flex justify-between items-center mb-3">
                             <h2 className="text-lg font-semibold">Select City</h2>
